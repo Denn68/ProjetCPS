@@ -1,0 +1,44 @@
+package frontend;
+
+import java.io.Serializable;
+
+import backend.ContentAccessSync;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentKeyI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.frontend.DHTServicesI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.CombinatorI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ProcessorI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ReductorI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
+
+public class DHTServices 
+implements DHTServicesI{
+
+	public DHTServices (ContentAccessSync backend) {
+		this.backend = backend;
+	}
+	
+	private ContentAccessSync backend;
+	@Override
+	public ContentDataI get(ContentKeyI arg0) throws Exception {		
+		return this.backend.getSync("", arg0);
+	}
+
+	@Override
+	public <R extends Serializable, A extends Serializable> A mapReduce(SelectorI arg0, ProcessorI<R> arg1,
+			ReductorI<A, R> arg2, CombinatorI<A> arg3, A arg4) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ContentDataI put(ContentKeyI arg0, ContentDataI arg1) throws Exception {
+		return this.backend.putSync("", arg0, arg1);
+	}
+
+	@Override
+	public ContentDataI remove(ContentKeyI arg0) throws Exception {
+		return this.backend.removeSync("", arg0);
+	}
+
+}
