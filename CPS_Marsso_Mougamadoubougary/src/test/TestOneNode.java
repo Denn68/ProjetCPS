@@ -20,11 +20,12 @@ public class TestOneNode {
 		
 		try {
 			ContentDataI oldPerson = frontend.put(key1, data1);
-			System.out.println(oldPerson);  // égal a null
+			//System.out.println(oldPerson);  // égal a null
 			ContentDataI newPerson = frontend.get(key1);
-			System.out.println(newPerson.getValue("NOM")); // égal à TEST
+			assert newPerson.getValue("NOM").equals("Test") : "Nom incorrect";
 			newPerson = frontend.remove(key1);
-			System.out.println(newPerson.getValue("AGE")); // égal à 50
+			assert newPerson.getValue("AGE").equals(50) : "Age incorrect";
+			System.out.println("No problem");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
