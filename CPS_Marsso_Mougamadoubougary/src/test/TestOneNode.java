@@ -19,7 +19,7 @@ public class TestOneNode {
 		
 		try {
 			ContentDataI oldPerson = frontend.put(key1, data1);
-			//System.out.println(oldPerson);  // égal a null
+			assert oldPerson == null : "Type incorrect";
 			ContentDataI newPerson = frontend.get(key1);
 			assert newPerson.getValue("NOM").equals("Test") : "Nom incorrect";
 			newPerson = frontend.remove(key1);
