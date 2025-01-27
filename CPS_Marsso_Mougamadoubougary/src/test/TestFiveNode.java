@@ -2,12 +2,11 @@ package test;
 
 import java.util.LinkedList;
 
-import backend.ContentAccessSync;
 import backend.ContentKey;
 import backend.Node;
 import backend.Personne;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
-import frontend.DHTServices;
+import frontend.Facade;
 
 public class TestFiveNode {
 	public static void main(String[] args) {
@@ -36,8 +35,8 @@ public class TestFiveNode {
 		if (err == false) {
 			System.out.println("Erreur lors de l'ajout du noeud 5");
 		}
-		ContentAccessSync backend = new ContentAccessSync(listOfNodes);
-		DHTServices frontend = new DHTServices(backend);
+		
+		Facade frontend = new Facade(listOfNodes);
 		
 		String P1_nom = "P1";
 		int P1_age = 50;

@@ -41,7 +41,7 @@ implements ContentAccessSyncI, MapReduceSyncI{
 
 	@Override
 	public <R extends Serializable> void mapSync(String attribute, SelectorI selector, ProcessorI<R> processor) throws Exception {
-		this.tableHachage.
+		this.tableHachage.values().stream()
 		.filter(((Predicate<ContentDataI>) selector))
 		.map(processor);
 		

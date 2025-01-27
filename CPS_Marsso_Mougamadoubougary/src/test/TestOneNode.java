@@ -1,9 +1,9 @@
 package test;
 
 import backend.*;
-import frontend.*;
 import java.util.LinkedList;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
+import frontend.*;
 
 public class TestOneNode {
 	public static void main(String[] args) {
@@ -12,8 +12,7 @@ public class TestOneNode {
 		if (err == false) {
 			System.out.println("Erreur lors de l'ajout du noeud");
 		}
-		ContentAccessSync backend = new ContentAccessSync(oneNode);
-		DHTServices frontend = new DHTServices(backend);
+		Facade frontend = new Facade(oneNode);
 		
 		ContentKey key1 = new ContentKey(10);
 		Personne data1 = new Personne("Test", 50);
