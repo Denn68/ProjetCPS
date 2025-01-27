@@ -1,0 +1,15 @@
+package backend;
+
+import java.util.HashMap;
+
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentKeyI;
+
+public class Node {
+
+	public Node (HashMap<ContentKeyI, ContentDataI> tableHachage) {
+		this.tableHachage = tableHachage;
+	}
+	
+	private HashMap<ContentKeyI, ContentDataI> tableHachage;
+}

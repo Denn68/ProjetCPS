@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<dirs>
+    <entry loc="/usr/lib/jvm/jdk-14.0.2" stamp="1705403949360"/>
+    <entry loc="/usr/lib/jvm/java-17-openjdk-amd64" stamp="1734082197788"/>
+    <entry loc="/usr/local/eclipse-IDE-for-Java-Developers/eclipse/plugins/org.eclipse.justj.openjdk.hotspot.jre.full.linux.x86_64_17.0.8.v20230831-1047/jre" stamp="1694095530000"/>
+    <entry loc="/usr/local/eclipse-IDE-for-Java-Developers/eclipse/plugins/org.eclipse.justj.openjdk.hotspot.jre.full.linux.x86_64_17.0.8.v20230831-1047" stamp="1694095530000"/>
+    <entry loc="/usr/lib/jvm/java-11-openjdk-amd64" stamp="1693553690106"/>
+    <entry loc="/usr/lib/jvm/jdk1.8.0_171" stamp="1522282726000"/>
+    <entry loc="/usr/lib/jvm/jdk-10.0.1" stamp="1705403931444"/>
+</dirs>

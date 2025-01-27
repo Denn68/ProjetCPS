@@ -1,0 +1,21 @@
+INDEX VERSION 1.134+/users/nfs/Etu2/28608482/eclipse-workspace/.metadata/.plugins/org.eclipse.jdt.core
+1032886694.index
+3437305044.index
+2839167428.index
+1865797976.index
+2473612131.index
+955921485.index
+720836995.index
+3347395434.index
+703391978.index
+3579648462.index
+3644885222.index
+4230786839.index
+4140945150.index
+4279816516.index
+3448542329.index
+841182778.index
+2835006370.index
+2396374576.index
+1281677646.index
+2682952679.index

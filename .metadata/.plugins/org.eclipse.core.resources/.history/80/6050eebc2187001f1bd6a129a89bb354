@@ -1,0 +1,94 @@
+package com.paracamplus.ilp2.ilp2tme4.parser.ilpml.met2;
+
+import com.paracamplus.ilp1.interfaces.IASTalternative;
+import com.paracamplus.ilp1.interfaces.IASTbinaryOperation;
+import com.paracamplus.ilp1.interfaces.IASTblock;
+import com.paracamplus.ilp1.interfaces.IASTboolean;
+import com.paracamplus.ilp1.interfaces.IASTexpression;
+import com.paracamplus.ilp1.interfaces.IASTfloat;
+import com.paracamplus.ilp1.interfaces.IASTinteger;
+import com.paracamplus.ilp1.interfaces.IASTinvocation;
+import com.paracamplus.ilp1.interfaces.IASTsequence;
+import com.paracamplus.ilp1.interfaces.IASTstring;
+import com.paracamplus.ilp1.interfaces.IASTunaryOperation;
+import com.paracamplus.ilp1.interfaces.IASTvariable;
+import com.paracamplus.ilp1.interpreter.interfaces.EvaluationException;
+import com.paracamplus.ilp1.interpreter.interfaces.IGlobalVariableEnvironment;
+import com.paracamplus.ilp1.interpreter.interfaces.ILexicalEnvironment;
+import com.paracamplus.ilp1.interpreter.interfaces.IOperatorEnvironment;
+import com.paracamplus.ilp2.interfaces.IASTassignment;
+import com.paracamplus.ilp2.interfaces.IASTloop;
+
+public class ASTvisitor
+    implements IASTvisitor<IASTexpression, ILexicalEnvironment, EvaluationException> {
+        //  
+        public ASTvisitor(IASTfactory factory) {
+    		super();
+    		this.factory = factory;
+    	}
+
+    protected IASTfactory factory;
+	@Override
+	public IASTexpression visit(IASTassignment iast, ILexicalEnvironment data) throws EvaluationException {
+        return factory.newAssignment(iast.getVariable(), iast.getExpression().accept(this, data));
+	}
+
+	@Override
+	public IASTexpression visit(IASTloop iast, ILexicalEnvironment data) throws EvaluationException {
+        return factory.newLoop(iast.getCondition().accept(this, data), iast.getBody().accept(this, data));
+	}
+
+	@Override
+	public IASTexpression visit(IASTalternative iast, ILexicalEnvironment data) throws EvaluationException {
+		return factory.newAlternative(iast.getCondition().accept(this, data), iast.getConsequence().accept(this, data), iast.getAlternant().accept(this, data));
+	}
+
+	@Override
+	public IASTexpression visit(IASTbinaryOperation iast, ILexicalEnvironment data) throws EvaluationException {
+		return factory.newBinaryOperation(iast.getOperator(), iast.getLeftOperand().accept(this, data), iast.getRightOperand().accept(this, data));
+	}
+
+	@Override
+	public IASTexpression visit(IASTblock iast, ILexicalEnvironment data) throws EvaluationException {
+		return factory.newBlock(iast.getBindings(), iast.getBody().accept(this, data));
+	}
+
+	@Override
+	public IASTexpression visit(IASTboolean iast, ILexicalEnvironment data) throws EvaluationException {
+		return factory.newBooleanConstant(iast.getDescription());
+	}
+
+	@Override
+	public IASTexpression visit(IASTfloat iast, ILexicalEnvironment data) throws EvaluationException {
+		return factory.newFloatConstant(iast.getDescription());
+	}
+	
+	@Override
+	public IASTexpression visit(IASTinteger iast, ILexicalEnvironment data) throws EvaluationException {
+		return factory.newIntegerConstant(iast.getDescription());
+	}
+	@Override
+	public IASTexpression visit(IASTinvocation iast, ILexicalEnvironment data) throws EvaluationException {
+		return factory.newInvocation(iast.getFunction().accept(this, data), iast.getArguments());
+	}
+	@Override
+	public IASTexpression visit(IASTsequence iast, ILexicalEnvironment data) throws EvaluationException {
+		return factory.newSequence(iast.getExpressions());
+	}
+	@Override
+	public IASTexpression visit(IASTstring iast, ILexicalEnvironment data) throws EvaluationException {
+		return factory.newStringConstant(iast.getDescription());
+	}
+	@Override
+	public IASTexpression visit(IASTunaryOperation iast, ILexicalEnvironment data) throws EvaluationException {
+		return factory.newUnaryOperation(iast.getOperator(), iast.getOperand().accept(this, data));
+	}
+	@Override
+	public IASTexpression visit(IASTvariable iast, ILexicalEnvironment data) throws EvaluationException {
+		return factory.newVariable(iast.getMangledName());
+	}
+	@Override
+	public IASTexpression visit(IASTunless iast, ILexicalEnvironment data) throws EvaluationException {
+		return factory.newAlternative(factory.newUnaryOperation(factory.newOperator("!"), iast.getCondition().accept(this, data)), iast.getBody().accept(this, data), null);
+	}
+}

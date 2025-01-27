@@ -1,0 +1,55 @@
+package backend;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentKeyI;
+
+public class ContentAccessSync 
+implements ContentAccessSyncI{
+	
+	public ContentAccessSync (LinkedList<HashMap<ContentKeyI, ContentDataI>> tableHachage) {
+		this.tableHachageRepartie = tableHachage;
+	}
+	
+	private LinkedList<HashMap<ContentKeyI, ContentDataI>> tableHachageRepartie;
+	
+	@Override
+	public void clearComputation(String arg0) throws Exception {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public ContentDataI getSync(String arg0, ContentKeyI arg1) throws Exception {
+		for (HashMap<ContentKeyI, ContentDataI> tableHachage: this.tableHachageRepartie) {
+			if(tableHachage.containsKey(arg1)) {
+				return tableHachage.get(arg1);
+			}
+		}
+		throw new IllegalArgumentException(
+				"The hachage table doesn't contain: " + arg1);
+	}
+
+	@Override
+	public ContentDataI putSync(String arg0, ContentKeyI arg1, ContentDataI arg2) throws Exception {
+		for (HashMap<ContentKeyI, ContentDataI> tableHachage: this.tableHachageRepartie) {
+			if(tableHachage.containsKey(arg1)) {
+				return tableHachage.put(arg1, arg2);
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public ContentDataI removeSync(String arg0, ContentKeyI arg1) throws Exception {
+		for (HashMap<ContentKeyI, ContentDataI> tableHachage: this.tableHachageRepartie) {
+			if(tableHachage.containsKey(arg1)) {
+				return tableHachage.remove(arg1);
+			}
+		}
+		throw new IllegalArgumentException(
+				"The hachage table doesn't contain: " + arg1);
+	}
+}

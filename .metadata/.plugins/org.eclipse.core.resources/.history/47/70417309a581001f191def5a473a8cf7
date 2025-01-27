@@ -1,0 +1,2 @@
+let a = makeVector("test", 6) in
+vectorLength(a)

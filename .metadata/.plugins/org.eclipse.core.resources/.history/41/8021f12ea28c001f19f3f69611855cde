@@ -1,0 +1,26 @@
+/* *****************************************************************
+ * ilp2 - Implantation d'un langage de programmation.
+ * by Christian.Queinnec@paracamplus.com
+ * See http://mooc.paracamplus.com/ilp2
+ * GPL version 3
+ ***************************************************************** */
+package com.paracamplus.ilp2.ilp2tme5;
+
+
+public class NormalizationFactory
+extends com.paracamplus.ilp2.compiler.normalizer.NormalizationFactory
+implements INormalizationFactory {
+
+	
+	public IASTCbreak newBreak() {
+		return new ASTCbreak();
+	}
+
+
+	public IASTCcontinue newContinue() {
+		return new ASTCcontinue();
+	}
+
+
+
+}

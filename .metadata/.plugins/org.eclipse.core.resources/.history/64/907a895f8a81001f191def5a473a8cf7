@@ -1,0 +1,2 @@
+let a = 5 and b = 7 in
+a = a * b

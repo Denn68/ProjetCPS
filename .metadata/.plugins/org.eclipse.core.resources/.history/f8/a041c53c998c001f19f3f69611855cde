@@ -1,0 +1,16 @@
+package com.paracamplus.ilp2.ilp2tme5;
+
+import com.paracamplus.ilp1.ast.ASTexpression;
+import com.paracamplus.ilp1.interfaces.IASTvisitor;
+
+public class ASTCbreak extends ASTexpression
+implements IASTCbreak{
+	public ASTCbreak() {
+	}
+
+	@Override
+	public <Result, Data, Anomaly extends Throwable> Result accept(
+			IASTvisitor< Result, Data, Anomaly> visitor, Data data) throws Anomaly {
+		return ((IASTvisitor< Result, Data, Anomaly>) visitor).visit(this, data);
+	}
+}

@@ -1,0 +1,15 @@
+package backend;
+
+public class ContainsKey 
+implements ContainsKeyI{
+	
+	public ContainsKey (int integerKey) {
+		this.integerKey = integerKey;
+	}
+	private int integerKey;
+	
+	@Override
+	public int hashCode() {
+		return integerKey % 20;
+	}
+}

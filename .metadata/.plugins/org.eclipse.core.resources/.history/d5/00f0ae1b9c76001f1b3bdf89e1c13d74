@@ -1,0 +1,14 @@
+package com.paracamplus.ilp1.ilp1tme1.sequence;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
+
+class InterpreterTest {
+
+	@Test
+	void test() {
+		fail("Not yet implemented");
+	}
+
+}

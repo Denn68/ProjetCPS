@@ -1,0 +1,34 @@
+package com.paracamplus.ilp1.ilp1tme1.sequence;
+
+import com.paracamplus.ilp1.ast.ASTexpression;
+import com.paracamplus.ilp1.interfaces.IASTexpression;
+import com.paracamplus.ilp1.interfaces.IASTvisitor;
+
+public class ASTsequence extends ASTexpression implements com.paracamplus.ilp1.ilp1tme1.sequence.IASTsequence{
+    public ASTsequence (IASTexpression[] expressions) {
+        this.expressions = expressions;
+    }
+    protected IASTexpression[] expressions;
+    
+    @Override
+	public IASTexpression[] getExpressions() {
+        return this.expressions;
+    }
+    
+    @Override
+    public IASTexpression[] getAllButLastInstructions () {
+    	IASTexpression[] result = null;
+    	for(int i = 0; i < this.expressions.length - 1; i++)
+    	{
+    		result[i] = this.expressions[i];
+    	}
+    	return result;
+    }
+
+    @Override
+	public <Result, Data, Anomaly extends Throwable> 
+    Result accept(IASTvisitor<Result, Data, Anomaly> visitor, Data data)
+            throws Anomaly {
+        return visitor.visit(this, data);
+    }
+}

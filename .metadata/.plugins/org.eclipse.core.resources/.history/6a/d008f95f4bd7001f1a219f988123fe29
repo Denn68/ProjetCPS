@@ -1,0 +1,25 @@
+package backend;
+
+import java.util.HashMap;
+
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentKeyI;
+
+public class Node {
+
+	public Node (int min, int max) {
+		this.intervalMin = min;
+		this.intervalMax = max;
+	}
+	
+	private HashMap<ContentKeyI, ContentDataI> tableHachage;
+	private int intervalMin;
+	private int intervalMax;
+	
+	public boolean contains(ContentKeyI arg0) {
+		if(arg0.hashCode() >= intervalMin && arg0.hashCode() <= intervalMax) {
+			return true;
+		}
+		return false;
+	}
+}

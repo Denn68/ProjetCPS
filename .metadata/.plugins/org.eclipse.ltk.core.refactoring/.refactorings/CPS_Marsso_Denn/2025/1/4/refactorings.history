@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring accessors="true" comment="Delete 2 elements from project &apos;CPS_Marsso_Denn&apos;&#x0A;- Original project: &apos;CPS_Marsso_Denn&apos;&#x0A;- Original elements:&#x0A;     BCM4Java-10012025-src&#x0A;     BCM4Java-10012025.jar" description="Delete elements" element1="BCM4Java-10012025.jar" element2="BCM4Java-10012025-src" elements="0" flags="589830" id="org.eclipse.jdt.ui.delete" resources="2" stamp="1737380461629" subPackages="false" version="1.0"/>
+</session>

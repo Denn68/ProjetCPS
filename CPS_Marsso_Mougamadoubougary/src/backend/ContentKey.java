@@ -14,6 +14,6 @@ implements ContentKeyI{
 	
 	@Override
 	public int hashCode() {
-		return integerKey % 20;
+		return integerKey % 2000;
 	}
 }
