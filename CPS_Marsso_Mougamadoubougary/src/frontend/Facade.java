@@ -33,10 +33,14 @@ implements DHTServicesI{
 	}
 
 	@Override
-	public <R extends Serializable, A extends Serializable> A mapReduce(SelectorI arg0, ProcessorI<R> arg1,
-			ReductorI<A, R> arg2, CombinatorI<A> arg3, A arg4) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+	public <R extends Serializable, A extends Serializable> A mapReduce(SelectorI selector, ProcessorI<R> processor,
+			ReductorI<A, R> reductor, CombinatorI<A> combinator, A identity) throws Exception {
+		for (Node noeud: this.anneauNoeud) {
+			noeud.mapSync("", selector, processor);
+			return noeud.reduceSync("", reductor, combinator, identity);
+		}
+		throw new IllegalArgumentException(
+				"Je sais pas: ");
 	}
 
 	@Override
