@@ -21,13 +21,18 @@ implements ContentAccessSyncI, MapReduceSyncI{
 		this.intervalMax = max;
 		this.tableHachage = new HashMap<Integer, ContentDataI>(max-min);
 		this.suivant = suivant;
+		this.enTete = false;
 	}
 	
 	private HashMap<Integer, ContentDataI> tableHachage;
 	private int intervalMin;
 	private int intervalMax;
 	private Node suivant;
+	private boolean enTete;
 	
+	
+	// Gérer le booléen enTete pour le mettre à true quand on passe la première fois dans le noeud, puis à false quand on finis d'utiliser une méthode
+	// Utiliser la computationURi pour savoir quand on est dans l'en tete. La donner en parametre lors des appels get put etc
 	public boolean contains(ContentKeyI arg0) {
 		if(arg0.hashCode() >= intervalMin && arg0.hashCode() <= intervalMax) {
 			return true;

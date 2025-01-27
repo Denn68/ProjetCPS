@@ -16,15 +16,19 @@
     <fullyQualifiedTypeName name="com.paracamplus.ilp4.compiler.Compiler"/>
     <fullyQualifiedTypeName name="fr.sorbonne_u.cps.dht_mapreduce.interfaces.frontend.DHTServicesI"/>
     <fullyQualifiedTypeName name="fr.sorbonne_u.cps.mapreduce.utils.URIGenerator"/>
-    <fullyQualifiedTypeName name="fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncI"/>
     <fullyQualifiedTypeName name="java.util.HashMap"/>
     <fullyQualifiedTypeName name="frontend.DHTServices"/>
     <fullyQualifiedTypeName name="backend.ContentAccessSync"/>
-    <fullyQualifiedTypeName name="backend.Node"/>
     <fullyQualifiedTypeName name="java.util.LinkedList"/>
     <fullyQualifiedTypeName name="backend.ContainsKey"/>
     <fullyQualifiedTypeName name="backend.Personne"/>
-    <fullyQualifiedTypeName name="fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI"/>
     <fullyQualifiedTypeName name="fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentKeyI"/>
     <fullyQualifiedTypeName name="java.lang.System"/>
+    <fullyQualifiedTypeName name="java.util.stream.Stream"/>
+    <fullyQualifiedTypeName name="java.util.function.Predicate"/>
+    <fullyQualifiedTypeName name="fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI"/>
+    <fullyQualifiedTypeName name="fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceSyncI"/>
+    <fullyQualifiedTypeName name="fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncI"/>
+    <fullyQualifiedTypeName name="javax.xml.soap.Node"/>
+    <fullyQualifiedTypeName name="backend.Node"/>
 </qualifiedTypeNameHistroy>
