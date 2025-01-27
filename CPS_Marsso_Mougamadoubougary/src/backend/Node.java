@@ -1,11 +1,20 @@
 package backend;
 
+import java.io.Serializable;
 import java.util.HashMap;
+import java.util.function.Predicate;
 
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentKeyI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.CombinatorI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceSyncI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ProcessorI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ReductorI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
 
-public class Node {
+public class Node 
+implements ContentAccessSyncI, MapReduceSyncI{
 
 	public Node (int min, int max) {
 		this.intervalMin = min;
@@ -23,20 +32,46 @@ public class Node {
 		}
 		return false;
 	}
-	
-	public ContentDataI getData(ContentKeyI arg0) {
-		return tableHachage.get(arg0.hashCode());
+
+	@Override
+	public void clearMapReduceComputation(String arg0) throws Exception {
+		// TODO Auto-generated method stub
+		
 	}
-	
-	public ContentDataI putData(ContentKeyI arg0, ContentDataI arg1) {
-		return tableHachage.put(arg0.hashCode(), arg1);
+
+	@Override
+	public <R extends Serializable> void mapSync(String attribute, SelectorI selector, ProcessorI<R> processor) throws Exception {
+		this.tableHachage.
+		.filter(((Predicate<ContentDataI>) selector))
+		.map(processor);
+		
 	}
-	
-	public ContentDataI removeData(ContentKeyI arg0) {
-		return tableHachage.remove(arg0.hashCode());
+
+	@Override
+	public <A extends Serializable, R> A reduceSync(String arg0, ReductorI<A, R> arg1, CombinatorI<A> arg2, A arg3)
+			throws Exception {
+		// TODO Auto-generated method stub
+		return null;
 	}
-	
-	public void clearComputation() {
-		tableHachage.clear();
+
+	@Override
+	public void clearComputation(String arg0) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public ContentDataI getSync(String arg0, ContentKeyI arg1) throws Exception {
+		return tableHachage.get(arg1.hashCode());
+	}
+
+	@Override
+	public ContentDataI putSync(String arg0, ContentKeyI arg1, ContentDataI arg2) throws Exception {
+		return tableHachage.put(arg1.hashCode(), arg2);
+	}
+
+	@Override
+	public ContentDataI removeSync(String arg0, ContentKeyI arg1) throws Exception {
+		return tableHachage.remove(arg1.hashCode());
 	}
 }
