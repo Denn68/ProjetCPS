@@ -48,10 +48,10 @@ implements ContentAccessSyncI, MapReduceSyncI{
 	}
 
 	@Override
-	public <A extends Serializable, R> A reduceSync(String arg0, ReductorI<A, R> arg1, CombinatorI<A> arg2, A arg3)
+	public <A extends Serializable, R> A reduceSync(String attribute, ReductorI<A, R> reductor, CombinatorI<A> combinator, A filteredMap)
 			throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		return this.tableHachage.values().stream()
+				.reduce(filteredMap, (u,d) -> reductor.apply(u,(R) d), combinator);
 	}
 
 	@Override
