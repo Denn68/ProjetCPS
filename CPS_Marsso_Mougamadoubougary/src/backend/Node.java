@@ -16,15 +16,17 @@ import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
 public class Node 
 implements ContentAccessSyncI, MapReduceSyncI{
 
-	public Node (int min, int max) {
+	public Node (int min, int max, Node suivant) {
 		this.intervalMin = min;
 		this.intervalMax = max;
 		this.tableHachage = new HashMap<Integer, ContentDataI>(max-min);
+		this.suivant = suivant;
 	}
 	
 	private HashMap<Integer, ContentDataI> tableHachage;
 	private int intervalMin;
 	private int intervalMax;
+	private Node suivant;
 	
 	public boolean contains(ContentKeyI arg0) {
 		if(arg0.hashCode() >= intervalMin && arg0.hashCode() <= intervalMax) {
@@ -61,17 +63,35 @@ implements ContentAccessSyncI, MapReduceSyncI{
 	}
 
 	@Override
-	public ContentDataI getSync(String arg0, ContentKeyI arg1) throws Exception {
-		return tableHachage.get(arg1.hashCode());
+	public ContentDataI getSync(String attribute, ContentKeyI key) throws Exception {
+		if (this.contains(key)) {
+			return tableHachage.get(key.hashCode());
+		} else if (suivant != null){
+			return suivant.getSync(attribute, key);
+		} else {
+			throw new IllegalArgumentException("La clé est n'est pas dans l'intervalle de la table");
+		}
 	}
 
 	@Override
-	public ContentDataI putSync(String arg0, ContentKeyI arg1, ContentDataI arg2) throws Exception {
-		return tableHachage.put(arg1.hashCode(), arg2);
+	public ContentDataI putSync(String attribute, ContentKeyI key, ContentDataI data) throws Exception {
+		if (this.contains(key)) {
+			return tableHachage.put(key.hashCode(), data);
+		} else if (suivant != null){
+			return suivant.putSync(attribute, key, data);
+		} else {
+			throw new IllegalArgumentException("La clé est n'est pas dans l'intervalle de la table");
+		}
 	}
 
 	@Override
-	public ContentDataI removeSync(String arg0, ContentKeyI arg1) throws Exception {
-		return tableHachage.remove(arg1.hashCode());
+	public ContentDataI removeSync(String attribute, ContentKeyI key) throws Exception {
+		if (this.contains(key)) {
+			return tableHachage.remove(key.hashCode());
+		} else if (suivant != null){
+			return suivant.removeSync(attribute, key);
+		} else {
+			throw new IllegalArgumentException("La clé est n'est pas dans l'intervalle de la table");
+		}
 	}
 }

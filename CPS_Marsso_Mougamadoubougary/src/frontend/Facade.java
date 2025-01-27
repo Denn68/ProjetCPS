@@ -15,55 +15,32 @@ import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
 public class Facade 
 implements DHTServicesI{
 
-	public Facade (LinkedList<Node> anneauNoeud) {
+	public Facade (Node anneauNoeud) {
 		this.anneauNoeud = anneauNoeud;
 	}
 	
-	private LinkedList<Node> anneauNoeud;
+	private Node anneauNoeud;
 	
 	@Override
 	public ContentDataI get(ContentKeyI key) throws Exception {
-		for (Node noeud: this.anneauNoeud) {
-			if(noeud.contains(key)) {
-				return noeud.getSync("", key);
-			}
-		}
-		throw new IllegalArgumentException(
-				"The key is not in the interval of key: " + key);
+		return this.anneauNoeud.getSync("", key);
 	}
 
 	@Override
 	public <R extends Serializable, A extends Serializable> A mapReduce(SelectorI selector, ProcessorI<R> processor,
 			ReductorI<A, R> reductor, CombinatorI<A> combinator, A identity) throws Exception {
-		for (Node noeud: this.anneauNoeud) {
-			noeud.mapSync("", selector, processor);
-			return noeud.reduceSync("", reductor, combinator, identity);
-		}
-		throw new IllegalArgumentException(
-				"Je sais pas: ");
+			anneauNoeud.mapSync("", selector, processor);
+			return anneauNoeud.reduceSync("", reductor, combinator, identity);
 	}
 
 	@Override
 	public ContentDataI put(ContentKeyI key, ContentDataI data) throws Exception {
-		for (Node noeud: this.anneauNoeud) {
-			if(noeud.contains(key)) {
-				return noeud.putSync("", key, data);
-			}
-		}
-		throw new IllegalArgumentException(
-				"The key is not in the interval of key: " + key);
+		return this.anneauNoeud.putSync("", key, data); 
 	}
 
 	@Override
 	public ContentDataI remove(ContentKeyI key) throws Exception {
-		for (Node noeud: this.anneauNoeud) {
-			if(noeud.contains(key)) {
-				return noeud.removeSync("", key);
-			}
-		}
-		throw new IllegalArgumentException(
-				"The key is not in the interval of key: " + key);
-
+		return this.anneauNoeud.removeSync("", key);
 	}
 
 }
