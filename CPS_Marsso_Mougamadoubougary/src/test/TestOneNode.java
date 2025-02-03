@@ -1,17 +1,12 @@
 package test;
 
 import backend.*;
-import java.util.LinkedList;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
 import frontend.*;
 
 public class TestOneNode {
 	public static void main(String[] args) {
-		LinkedList<Node> oneNode = new LinkedList<Node>();
-		boolean err = oneNode.add(new Node(0, 50));
-		if (err == false) {
-			System.out.println("Erreur lors de l'ajout du noeud");
-		}
+		Node oneNode = new Node(0, 50);
 		Facade frontend = new Facade(oneNode);
 		
 		ContentKey key1 = new ContentKey(10);
