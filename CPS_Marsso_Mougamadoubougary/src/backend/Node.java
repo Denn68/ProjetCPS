@@ -58,9 +58,11 @@ implements ContentAccessSyncI, MapReduceSyncI{
 	}
 
 	@Override
-	public void clearMapReduceComputation(String arg0) throws Exception {
-		// TODO Auto-generated method stub
-		
+	public void clearMapReduceComputation(String computationUri) throws Exception {
+		this.listOfUri.remove(computationUri);
+		if(this.suivant.listOfUri.contains(computationUri)) {
+			this.suivant.clearMapReduceComputation(computationUri);
+		}
 	}
 
 	@Override
@@ -86,9 +88,11 @@ implements ContentAccessSyncI, MapReduceSyncI{
 	}
 
 	@Override
-	public void clearComputation(String arg0) throws Exception {
-		// TODO Auto-generated method stub
-		
+	public void clearComputation(String computationUri) throws Exception {
+		this.listOfUri.remove(computationUri);
+		if(this.suivant.listOfUri.contains(computationUri)) {
+			this.suivant.clearMapReduceComputation(computationUri);
+		}
 	}
 
 	@Override

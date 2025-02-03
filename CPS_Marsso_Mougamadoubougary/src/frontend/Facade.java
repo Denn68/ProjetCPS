@@ -1,11 +1,6 @@
 package frontend;
 
 import java.io.Serializable;
-import java.lang.reflect.Array;
-import java.util.LinkedList;
-import java.util.List;
-
-import backend.Node;
 import fr.sorbonne_u.components.endpoints.POJOEndPoint;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
@@ -28,31 +23,35 @@ implements DHTServicesI{
 		this.contentAccessClient.initialiseClientSide(clientEndPoint);
 	}
 	
-	private Node anneauNoeud;
 	private POJOEndPoint<ContentAccessSyncI> contentAccessClient;
 	private POJOEndPoint<MapReduceSyncI> mapReduceClient;
 	
 	
 	@Override
 	public ContentDataI get(ContentKeyI key) throws Exception {
+		this.contentAccessClient.getClientSideReference().clearComputation("get");
 		return this.contentAccessClient.getClientSideReference().getSync("get", key);
 	}
 
 	@Override
 	public <R extends Serializable, A extends Serializable> A mapReduce(SelectorI selector, ProcessorI<R> processor,
 			ReductorI<A, R> reductor, CombinatorI<A> combinator, A identity) throws Exception {
-			anneauNoeud.mapSync("mapreduce", selector, processor);
-			return anneauNoeud.reduceSync("mapreduce", reductor, combinator, identity);
+			this.mapReduceClient.getClientSideReference().clearMapReduceComputation("mapreduce");
+			this.mapReduceClient.getClientSideReference().mapSync("mapreduce", selector, processor);
+			this.mapReduceClient.getClientSideReference().clearMapReduceComputation("mapreduce");
+			return this.mapReduceClient.getClientSideReference().reduceSync("mapreduce", reductor, combinator, identity);
 	}
 
 	@Override
 	public ContentDataI put(ContentKeyI key, ContentDataI data) throws Exception {
-		return this.anneauNoeud.putSync("put", key, data); 
+		this.contentAccessClient.getClientSideReference().clearComputation("put");
+		return this.contentAccessClient.getClientSideReference().putSync("put", key, data); 
 	}
 
 	@Override
 	public ContentDataI remove(ContentKeyI key) throws Exception {
-		return this.anneauNoeud.removeSync("remove", key);
+		this.contentAccessClient.getClientSideReference().clearComputation("remove");
+		return this.contentAccessClient.getClientSideReference().removeSync("remove", key);
 	}
 
 }
