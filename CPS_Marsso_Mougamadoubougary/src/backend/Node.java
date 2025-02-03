@@ -82,11 +82,11 @@ implements ContentAccessSyncI, MapReduceSyncI{
 
 	@Override
 	public ContentDataI getSync(String attribute, ContentKeyI key) throws Exception {
-		if(this.suivant.estPasser) {
-			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
-		}
+		
 		if (this.contains(key)) {
 			return tableHachage.get(key.hashCode());
+		} else if(this.suivant.estPasser) {
+			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
 		} else {
 			return suivant.getSync(attribute, key);
 		}
@@ -94,11 +94,10 @@ implements ContentAccessSyncI, MapReduceSyncI{
 
 	@Override
 	public ContentDataI putSync(String attribute, ContentKeyI key, ContentDataI data) throws Exception {
-		if(this.suivant.estPasser) {
-			throw new IllegalArgumentException("La clé est n'est pas dans l'intervalle de la table");
-		}
 		if (this.contains(key)) {
 			return tableHachage.put(key.hashCode(), data);
+		} else if(this.suivant.estPasser) {
+			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
 		} else{
 			return suivant.putSync(attribute, key, data);
 		}
@@ -106,12 +105,11 @@ implements ContentAccessSyncI, MapReduceSyncI{
 
 	@Override
 	public ContentDataI removeSync(String attribute, ContentKeyI key) throws Exception {
-		if(this.suivant.estPasser) {
-			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
-		}
 		if (this.contains(key)) {
 			return tableHachage.remove(key.hashCode());
-		} else{
+		} else if(this.suivant.estPasser) {
+			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
+		}else {
 			return suivant.removeSync(attribute, key);
 		}
 	}
