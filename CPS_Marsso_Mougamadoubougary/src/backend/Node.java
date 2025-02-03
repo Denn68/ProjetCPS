@@ -3,6 +3,7 @@ package backend;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
@@ -16,23 +17,30 @@ import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
 public class Node 
 implements ContentAccessSyncI, MapReduceSyncI{
 
-	public Node (int min, int max, Node suivant) {
+	public Node (int min, int max) {
 		this.intervalMin = min;
 		this.intervalMax = max;
 		this.tableHachage = new HashMap<Integer, ContentDataI>(max-min);
-		this.suivant = suivant;
-		this.enTete = false;
+		this.memoryTable = new HashMap<>();
+		this.estPasser = false;
 	}
 	
 	private HashMap<Integer, ContentDataI> tableHachage;
+	private HashMap<String, Stream<ContentDataI>> memoryTable;
 	private int intervalMin;
 	private int intervalMax;
 	private Node suivant;
-	private boolean enTete;
+	private boolean estPasser;
 	
 	
-	// Gérer le booléen enTete pour le mettre à true quand on passe la première fois dans le noeud, puis à false quand on finis d'utiliser une méthode
-	// Utiliser la computationURi pour savoir quand on est dans l'en tete. La donner en parametre lors des appels get put etc
+	public void setSuivant(Node suivant) {
+		this.suivant = suivant; 
+	}
+	
+	public void setEstPasser(boolean estPasser) {
+		this.estPasser = estPasser; 
+	}
+	
 	public boolean contains(ContentKeyI arg0) {
 		if(arg0.hashCode() >= intervalMin && arg0.hashCode() <= intervalMax) {
 			return true;
@@ -47,18 +55,23 @@ implements ContentAccessSyncI, MapReduceSyncI{
 	}
 
 	@Override
-	public <R extends Serializable> void mapSync(String attribute, SelectorI selector, ProcessorI<R> processor) throws Exception {
-		this.tableHachage.values().stream()
+	public <R extends Serializable> void mapSync(String computationUri, SelectorI selector, ProcessorI<R> processor) throws Exception {
+		if (this.suivant.estPasser) {
+			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
+		}
+		this.memoryTable.put(computationUri, ((Stream<ContentDataI>) this.tableHachage.values().stream()
 		.filter(((Predicate<ContentDataI>) selector))
-		.map(processor);
-		
+		.map(processor)));
+		this.suivant.mapSync(computationUri, selector, processor);
 	}
 
 	@Override
-	public <A extends Serializable, R> A reduceSync(String attribute, ReductorI<A, R> reductor, CombinatorI<A> combinator, A filteredMap)
+	public <A extends Serializable, R> A reduceSync(String computationUri, ReductorI<A, R> reductor, CombinatorI<A> combinator, A filteredMap)
 			throws Exception {
-		return this.tableHachage.values().stream()
-				.reduce(filteredMap, (u,d) -> reductor.apply(u,(R) d), combinator);
+		if (this.suivant.estPasser) {
+			return this.memoryTable.get(computationUri).reduce(filteredMap, (u,d) -> reductor.apply(u,(R) d), combinator);
+		}
+		return combinator.apply(memoryTable.get(computationUri).reduce(filteredMap, (u,d) -> reductor.apply(u,(R) d), combinator), this.suivant.reduceSync(computationUri, reductor, combinator, filteredMap));
 	}
 
 	@Override
@@ -69,34 +82,37 @@ implements ContentAccessSyncI, MapReduceSyncI{
 
 	@Override
 	public ContentDataI getSync(String attribute, ContentKeyI key) throws Exception {
+		if(this.suivant.estPasser) {
+			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
+		}
 		if (this.contains(key)) {
 			return tableHachage.get(key.hashCode());
-		} else if (suivant != null){
-			return suivant.getSync(attribute, key);
 		} else {
-			throw new IllegalArgumentException("La clé est n'est pas dans l'intervalle de la table");
+			return suivant.getSync(attribute, key);
 		}
 	}
 
 	@Override
 	public ContentDataI putSync(String attribute, ContentKeyI key, ContentDataI data) throws Exception {
+		if(this.suivant.estPasser) {
+			throw new IllegalArgumentException("La clé est n'est pas dans l'intervalle de la table");
+		}
 		if (this.contains(key)) {
 			return tableHachage.put(key.hashCode(), data);
-		} else if (suivant != null){
+		} else{
 			return suivant.putSync(attribute, key, data);
-		} else {
-			throw new IllegalArgumentException("La clé est n'est pas dans l'intervalle de la table");
 		}
 	}
 
 	@Override
 	public ContentDataI removeSync(String attribute, ContentKeyI key) throws Exception {
+		if(this.suivant.estPasser) {
+			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
+		}
 		if (this.contains(key)) {
 			return tableHachage.remove(key.hashCode());
-		} else if (suivant != null){
+		} else{
 			return suivant.removeSync(attribute, key);
-		} else {
-			throw new IllegalArgumentException("La clé est n'est pas dans l'intervalle de la table");
 		}
 	}
 }
