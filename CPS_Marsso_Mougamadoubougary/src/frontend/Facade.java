@@ -5,7 +5,7 @@ import fr.sorbonne_u.components.endpoints.POJOEndPoint;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentKeyI;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.frontend.DHTServicesI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.frontend.DHTServicesCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.CombinatorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceSyncI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ProcessorI;
@@ -14,13 +14,13 @@ import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
 import fr.sorbonne_u.cps.mapreduce.endpoints.POJOContentNodeCompositeEndPoint;
 
 public class Facade 
-implements DHTServicesI{
+implements DHTServicesCI{
 
 	public Facade (POJOContentNodeCompositeEndPoint clientEndPoint) {
+		//while(!clientEndPoint.serverSideInitialised()) {}
+		//clientEndPoint.initialiseClientSide(clientEndPoint);
 		this.mapReduceClient = clientEndPoint.getMapReduceEndpoint();
 		this.contentAccessClient = clientEndPoint.getContentAccessEndpoint();
-		this.mapReduceClient.initialiseClientSide(clientEndPoint);
-		this.contentAccessClient.initialiseClientSide(clientEndPoint);
 	}
 	
 	private POJOEndPoint<ContentAccessSyncI> contentAccessClient;

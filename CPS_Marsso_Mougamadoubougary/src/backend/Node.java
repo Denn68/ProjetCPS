@@ -28,11 +28,15 @@ implements ContentAccessSyncI, MapReduceSyncI{
 		this.memoryTable = new HashMap<>();
 		this.listOfUri = new ArrayList<String>();
 		endPointServer.initialiseServerSide(this);
-		this.mapReduceClient = endPointClient.getMapReduceEndpoint();
-		this.contentAccessClient = endPointClient.getContentAccessEndpoint();
-		this.mapReduceClient.initialiseClientSide(endPointClient);
-		this.contentAccessClient.initialiseClientSide(endPointClient);
-		
+		new Thread(() -> {
+            while(!endPointClient.serverSideInitialised()) {}
+            endPointClient.initialiseClientSide(endPointClient);
+            this.mapReduceClient = endPointClient.getMapReduceEndpoint();
+    		this.contentAccessClient = endPointClient.getContentAccessEndpoint();
+            System.out.println("Client initialisé !");
+        }).start();
+		//this.mapReduceClient.initialiseClientSide(endPointClient);
+		//this.contentAccessClient.initialiseClientSide(endPointClient);
 	}
 	
 	private HashMap<Integer, ContentDataI> tableHachage;
