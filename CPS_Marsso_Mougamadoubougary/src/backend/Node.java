@@ -57,13 +57,16 @@ implements ContentAccessSyncI, MapReduceSyncI{
 	@Override
 	public void clearMapReduceComputation(String computationUri) throws Exception {
 		if(!endPointClient.clientSideInitialised()) {
+			System.out.println("3");
 			endPointClient.initialiseClientSide(endPointClient);
 			this.mapReduceClient = endPointClient.getMapReduceEndpoint();
 			this.contentAccessClient = endPointClient.getContentAccessEndpoint();
 		}
-		this.listOfUri.remove(computationUri);
-		if(this.suivant.listOfUri.contains(computationUri)) {
-			this.suivant.clearMapReduceComputation(computationUri);
+		System.out.println("2");
+		if(this.listOfUri.contains(computationUri)) {
+			this.listOfUri.remove(computationUri);
+			System.out.println("1");
+			this.mapReduceClient.getClientSideReference().clearMapReduceComputation(computationUri);
 		}
 	}
 
@@ -74,43 +77,42 @@ implements ContentAccessSyncI, MapReduceSyncI{
 			this.mapReduceClient = endPointClient.getMapReduceEndpoint();
 			this.contentAccessClient = endPointClient.getContentAccessEndpoint();
 		}
+		if(this.listOfUri.contains(computationUri)) {
+			return;
+		}
 		this.memoryTable.put(computationUri, ((Stream<ContentDataI>) this.tableHachage.values().stream()
 		.filter(((Predicate<ContentDataI>) selector))
 		.map(processor)));
 		this.listOfUri.add(computationUri);
-		if (this.suivant.listOfUri.contains(computationUri)) {
-			return ;
-		}
-		this.suivant.mapSync(computationUri, selector, processor);
+		this.mapReduceClient.getClientSideReference().mapSync(computationUri, selector, processor);
 	}
 
 	@Override
 	public <A extends Serializable, R> A reduceSync(String computationUri, ReductorI<A, R> reductor, CombinatorI<A> combinator, A filteredMap)
 			throws Exception {
+		if(this.listOfUri.contains(computationUri)) {
+			return this.memoryTable.get(computationUri).reduce(filteredMap, (u,d) -> reductor.apply(u,(R) d), combinator);
+		}
 		if(!endPointClient.clientSideInitialised()) {
 			endPointClient.initialiseClientSide(endPointClient);
 			this.mapReduceClient = endPointClient.getMapReduceEndpoint();
 			this.contentAccessClient = endPointClient.getContentAccessEndpoint();
 		}
 		this.listOfUri.add(computationUri);
-		if (this.suivant.listOfUri.contains(computationUri)) {
-			return this.memoryTable.get(computationUri).reduce(filteredMap, (u,d) -> reductor.apply(u,(R) d), combinator);
-		}
 		return combinator.apply(memoryTable.get(computationUri).reduce(filteredMap, (u,d) -> reductor.apply(u,(R) d), combinator), 
-				this.suivant.reduceSync(computationUri, reductor, combinator, filteredMap));
+				this.mapReduceClient.getClientSideReference().reduceSync(computationUri, reductor, combinator, filteredMap));
 	}
 
 	@Override
 	public void clearComputation(String computationUri) throws Exception {
-		System.out.println("Je suis la");
 		if(!endPointClient.clientSideInitialised()) {
 			endPointClient.initialiseClientSide(endPointClient);
 			this.mapReduceClient = endPointClient.getMapReduceEndpoint();
 			this.contentAccessClient = endPointClient.getContentAccessEndpoint();
 		}
-		this.listOfUri.remove(computationUri);
-		if(this.suivant.listOfUri.contains(computationUri)) {
-			this.suivant.clearMapReduceComputation(computationUri);
+		if(this.listOfUri.contains(computationUri)) {
+			this.listOfUri.remove(computationUri);
+			this.mapReduceClient.getClientSideReference().clearMapReduceComputation(computationUri);
 		}
 	}
 
