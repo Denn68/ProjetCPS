@@ -84,7 +84,8 @@ implements ContentAccessSyncI, MapReduceSyncI{
 		if (this.suivant.listOfUri.contains(computationUri)) {
 			return this.memoryTable.get(computationUri).reduce(filteredMap, (u,d) -> reductor.apply(u,(R) d), combinator);
 		}
-		return combinator.apply(memoryTable.get(computationUri).reduce(filteredMap, (u,d) -> reductor.apply(u,(R) d), combinator), this.suivant.reduceSync(computationUri, reductor, combinator, filteredMap));
+		return combinator.apply(memoryTable.get(computationUri).reduce(filteredMap, (u,d) -> reductor.apply(u,(R) d), combinator), 
+				this.suivant.reduceSync(computationUri, reductor, combinator, filteredMap));
 	}
 
 	@Override

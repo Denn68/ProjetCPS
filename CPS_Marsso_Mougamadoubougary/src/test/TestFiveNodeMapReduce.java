@@ -4,10 +4,6 @@ import backend.ContentKey;
 import backend.Node;
 import backend.Personne;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.CombinatorI;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ProcessorI;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ReductorI;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
 import fr.sorbonne_u.cps.mapreduce.endpoints.POJOContentNodeCompositeEndPoint;
 import frontend.Facade;
 
@@ -70,59 +66,46 @@ public class TestFiveNodeMapReduce {
 			assert oldPerson1 == null : "Type incorrect";
 			ContentDataI newPerson1 = frontend.get(key1);
 			assert newPerson1.getValue("NOM").equals(P1_nom) : "Nom incorrect";
-			//newPerson1 = frontend.remove(key1);
 			assert newPerson1.getValue("AGE").equals(P1_age) : "Age incorrect";
 			
 			ContentDataI oldPerson2 = frontend.put(key2, data2);
 			assert oldPerson2 == null : "Type incorrect";
 			ContentDataI newPerson2 = frontend.get(key2);
 			assert newPerson2.getValue("NOM").equals(P2_nom) : "Nom incorrect";
-			//newPerson2 = frontend.remove(key2);
 			assert newPerson2.getValue("AGE").equals(P2_age) : "Age incorrect";
 			
 			ContentDataI oldPerson3 = frontend.put(key3, data3);
 			assert oldPerson3 == null : "Type incorrect";
 			ContentDataI newPerson3 = frontend.get(key3);
 			assert newPerson3.getValue("NOM").equals(P3_nom) : "Nom incorrect";
-			//newPerson3 = frontend.remove(key3);
 			assert newPerson3.getValue("AGE").equals(P3_age) : "Age incorrect";
 			
 			ContentDataI oldPerson4 = frontend.put(key4, data4);
 			assert oldPerson4 == null : "Type incorrect";
 			ContentDataI newPerson4 = frontend.get(key4);
 			assert newPerson4.getValue("NOM").equals(P4_nom) : "Nom incorrect";
-			//newPerson4 = frontend.remove(key4);
 			assert newPerson4.getValue("AGE").equals(P4_age) : "Age incorrect";
 			
 			ContentDataI oldPerson5 = frontend.put(key5, data5);
 			assert oldPerson5 == null : "Type incorrect";
 			ContentDataI newPerson5 = frontend.get(key5);
 			assert newPerson5.getValue("NOM").equals(P5_nom) : "Nom incorrect";
-			//newPerson5 = frontend.remove(key5);
 			assert newPerson5.getValue("AGE").equals(P5_age) : "Age incorrect";
 			
 			ContentDataI oldPerson6 = frontend.put(key6, data6);
 			assert oldPerson6 == newPerson5 : "Type incorrect";
 			ContentDataI newPerson6 = frontend.get(key6);
 			assert newPerson6.getValue("NOM").equals(P6_nom) : "Nom incorrect";
-			//newPerson6 = frontend.remove(key6);
 			assert newPerson6.getValue("AGE").equals(P6_age) : "Age incorrect";
 
-			/*int res = frontend.mapReduce(
-					(item) -> ((Integer) item.getValue("AGE")) % 2 == 0,
-					(item) -> ((Integer) item.getValue("AGE")) * 2,
-					(accumulator, i) -> accumulator + i,
-					(a1, a2) -> a1 + a2,
-					10);*/
-			
 			int res = frontend.mapReduce(
-					(item) -> true,
-					(item) -> 2,
-					(accumulator, i) -> i,
+					(item) -> ((int) item.getValue("AGE")) % 2 == 0,
+					(item) -> new Personne(((String)item.getValue("NOM")), ((int) item.getValue("AGE"))*2),
+					(accumulator, i) -> accumulator + ((int)i.getValue("AGE")),
 					(a1, a2) -> a1 + a2,
 					10);
 			
-			System.out.println(res);
+			assert res == 346 : "MapReduce incorrect";
 						
 			System.out.println("No problem");
 			
