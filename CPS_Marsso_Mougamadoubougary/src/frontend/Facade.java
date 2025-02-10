@@ -17,8 +17,7 @@ public class Facade
 implements DHTServicesCI{
 
 	public Facade (POJOContentNodeCompositeEndPoint clientEndPoint) {
-		//while(!clientEndPoint.serverSideInitialised()) {}
-		//clientEndPoint.initialiseClientSide(clientEndPoint);
+		clientEndPoint.initialiseClientSide(clientEndPoint);
 		this.mapReduceClient = clientEndPoint.getMapReduceEndpoint();
 		this.contentAccessClient = clientEndPoint.getContentAccessEndpoint();
 	}

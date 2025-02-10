@@ -28,15 +28,7 @@ implements ContentAccessSyncI, MapReduceSyncI{
 		this.memoryTable = new HashMap<>();
 		this.listOfUri = new ArrayList<String>();
 		endPointServer.initialiseServerSide(this);
-		new Thread(() -> {
-            while(!endPointClient.serverSideInitialised()) {}
-            endPointClient.initialiseClientSide(endPointClient);
-            this.mapReduceClient = endPointClient.getMapReduceEndpoint();
-    		this.contentAccessClient = endPointClient.getContentAccessEndpoint();
-            System.out.println("Client initialisé !");
-        }).start();
-		//this.mapReduceClient.initialiseClientSide(endPointClient);
-		//this.contentAccessClient.initialiseClientSide(endPointClient);
+		this.endPointClient = endPointClient;
 	}
 	
 	private HashMap<Integer, ContentDataI> tableHachage;
@@ -47,6 +39,7 @@ implements ContentAccessSyncI, MapReduceSyncI{
 	private POJOEndPoint <MapReduceSyncI> mapReduceClient;
 	private POJOEndPoint <ContentAccessSyncI> contentAccessClient;
 	private List<String> listOfUri;
+	private POJOContentNodeCompositeEndPoint endPointClient;
 
 	
 	
@@ -63,6 +56,11 @@ implements ContentAccessSyncI, MapReduceSyncI{
 
 	@Override
 	public void clearMapReduceComputation(String computationUri) throws Exception {
+		if(!endPointClient.clientSideInitialised()) {
+			endPointClient.initialiseClientSide(endPointClient);
+			this.mapReduceClient = endPointClient.getMapReduceEndpoint();
+			this.contentAccessClient = endPointClient.getContentAccessEndpoint();
+		}
 		this.listOfUri.remove(computationUri);
 		if(this.suivant.listOfUri.contains(computationUri)) {
 			this.suivant.clearMapReduceComputation(computationUri);
@@ -71,6 +69,11 @@ implements ContentAccessSyncI, MapReduceSyncI{
 
 	@Override
 	public <R extends Serializable> void mapSync(String computationUri, SelectorI selector, ProcessorI<R> processor) throws Exception {
+		if(!endPointClient.clientSideInitialised()) {
+			endPointClient.initialiseClientSide(endPointClient);
+			this.mapReduceClient = endPointClient.getMapReduceEndpoint();
+			this.contentAccessClient = endPointClient.getContentAccessEndpoint();
+		}
 		this.memoryTable.put(computationUri, ((Stream<ContentDataI>) this.tableHachage.values().stream()
 		.filter(((Predicate<ContentDataI>) selector))
 		.map(processor)));
@@ -84,6 +87,11 @@ implements ContentAccessSyncI, MapReduceSyncI{
 	@Override
 	public <A extends Serializable, R> A reduceSync(String computationUri, ReductorI<A, R> reductor, CombinatorI<A> combinator, A filteredMap)
 			throws Exception {
+		if(!endPointClient.clientSideInitialised()) {
+			endPointClient.initialiseClientSide(endPointClient);
+			this.mapReduceClient = endPointClient.getMapReduceEndpoint();
+			this.contentAccessClient = endPointClient.getContentAccessEndpoint();
+		}
 		this.listOfUri.add(computationUri);
 		if (this.suivant.listOfUri.contains(computationUri)) {
 			return this.memoryTable.get(computationUri).reduce(filteredMap, (u,d) -> reductor.apply(u,(R) d), combinator);
@@ -94,6 +102,12 @@ implements ContentAccessSyncI, MapReduceSyncI{
 
 	@Override
 	public void clearComputation(String computationUri) throws Exception {
+		System.out.println("Je suis la");
+		if(!endPointClient.clientSideInitialised()) {
+			endPointClient.initialiseClientSide(endPointClient);
+			this.mapReduceClient = endPointClient.getMapReduceEndpoint();
+			this.contentAccessClient = endPointClient.getContentAccessEndpoint();
+		}
 		this.listOfUri.remove(computationUri);
 		if(this.suivant.listOfUri.contains(computationUri)) {
 			this.suivant.clearMapReduceComputation(computationUri);
@@ -102,7 +116,11 @@ implements ContentAccessSyncI, MapReduceSyncI{
 
 	@Override
 	public ContentDataI getSync(String computationUri, ContentKeyI key) throws Exception {
-		
+		if(!endPointClient.clientSideInitialised()) {
+			endPointClient.initialiseClientSide(endPointClient);
+			this.mapReduceClient = endPointClient.getMapReduceEndpoint();
+			this.contentAccessClient = endPointClient.getContentAccessEndpoint();
+		}
 		if (this.contains(key)) {
 			return tableHachage.get(key.hashCode());
 		} else if(this.suivant.listOfUri.contains(computationUri)) {
@@ -115,6 +133,11 @@ implements ContentAccessSyncI, MapReduceSyncI{
 
 	@Override
 	public ContentDataI putSync(String computationUri, ContentKeyI key, ContentDataI data) throws Exception {
+		if(!endPointClient.clientSideInitialised()) {
+			endPointClient.initialiseClientSide(endPointClient);
+			this.mapReduceClient = endPointClient.getMapReduceEndpoint();
+			this.contentAccessClient = endPointClient.getContentAccessEndpoint();
+		}
 		if (this.contains(key)) {
 			return tableHachage.put(key.hashCode(), data);
 		} else if(this.suivant.listOfUri.contains(computationUri)) {
@@ -127,6 +150,11 @@ implements ContentAccessSyncI, MapReduceSyncI{
 
 	@Override
 	public ContentDataI removeSync(String computationUri, ContentKeyI key) throws Exception {
+		if(!endPointClient.clientSideInitialised()) {
+			endPointClient.initialiseClientSide(endPointClient);
+			this.mapReduceClient = endPointClient.getMapReduceEndpoint();
+			this.contentAccessClient = endPointClient.getContentAccessEndpoint();
+		}
 		if (this.contains(key)) {
 			return tableHachage.remove(key.hashCode());
 		} else if(this.suivant.listOfUri.contains(computationUri)) {
