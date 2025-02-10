@@ -1,0 +1,6 @@
+fr.sorbonne_u.cps.dht_mapreduce.interfaces.content
+fr.sorbonne_u.cps.dht_mapreduce.interfaces.endpoints
+fr.sorbonne_u.cps.dht_mapreduce.interfaces.frontend
+fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce
+fr.sorbonne_u.cps.mapreduce.endpoints
+fr.sorbonne_u.cps.mapreduce.utils
