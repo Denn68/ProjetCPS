@@ -1,2 +1,0 @@
-let a = makeVector(4, 2) in 
-vectorGet(a, 1)

@@ -23,12 +23,6 @@ public class TestFiveNodeMapReduce {
 		Node node4 = new Node(1200, 1599, ep4, ep5);
 		Node node5 = new Node(1600, 1999, ep5, ep1);
 		
-		node1.setSuivant(node2);
-		node2.setSuivant(node3);
-		node3.setSuivant(node4);
-		node4.setSuivant(node5);
-		node5.setSuivant(node1);
-		
 		Facade frontend = new Facade(ep1);
 		
 		String P1_nom = "P1";
@@ -105,7 +99,7 @@ public class TestFiveNodeMapReduce {
 					(a1, a2) -> a1 + a2,
 					10);
 			
-			assert res == 346 : "MapReduce incorrect";
+			assert res == 356 : "MapReduce incorrect";
 						
 			System.out.println("No problem");
 			

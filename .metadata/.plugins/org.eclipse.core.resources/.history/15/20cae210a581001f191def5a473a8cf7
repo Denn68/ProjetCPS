@@ -1,2 +1,0 @@
-let a = makeVector(4, 6) in
-vectorLength(a)

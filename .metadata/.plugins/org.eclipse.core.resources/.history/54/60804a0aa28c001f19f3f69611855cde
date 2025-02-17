@@ -1,9 +1,0 @@
-package com.paracamplus.ilp2.ilp2tme5;
-
-
-public class ASTCbreak extends ASTexpression
-implements IASTCbreak{
-	public ASTCbreak() {
-	}
-
-}

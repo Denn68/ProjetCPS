@@ -1,3 +1,0 @@
-function fi(x,y) x + y
-
-fi(4,5)

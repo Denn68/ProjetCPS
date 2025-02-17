@@ -1,7 +1,0 @@
-package com.paracamplus.ilp1.ilp1tme1;
-
-public static void main (String[] args) {
-	public class FileInterpreter {
-		
-	}
-}
