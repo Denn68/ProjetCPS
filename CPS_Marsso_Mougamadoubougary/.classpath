@@ -6,5 +6,6 @@
 	<classpathentry kind="lib" path="/CPS_Initial/BCM4Java-06022025.jar"/>
 	<classpathentry kind="lib" path="/CPS_Initial/CPS-2025-livraison-s3/CPS-2025-livraison-s3/CPS-2025-DHT-etape2.jar"/>
 	<classpathentry kind="lib" path="/CPS_Initial/CPS-2025-DHT-etape1.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
