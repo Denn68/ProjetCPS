@@ -118,14 +118,14 @@ public class TestFiveNodeMapReduce {
 
     @Test
     public void testMapReduce() throws Exception {
-    	System.out.println("knkk");
+
         int res = frontend.mapReduce(
                 (item) -> ((int) item.getValue(attAGE)) % 2 == 0,
                 (item) -> new Personne(((String) item.getValue(attNOM)), ((int) item.getValue(attAGE)) * 2),
                 (accumulator, i) -> accumulator + ((int) i.getValue(attAGE)),
                 (a1, a2) -> a1 + a2,
                 10);
-        System.out.println("knkk");
+        
         assertEquals(60, res, "MapReduce incorrect");
     }
 }
