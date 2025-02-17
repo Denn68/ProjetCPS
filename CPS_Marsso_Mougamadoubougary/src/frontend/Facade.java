@@ -1,56 +1,57 @@
 package frontend;
 
 import java.io.Serializable;
-import fr.sorbonne_u.components.endpoints.POJOEndPoint;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncI;
+
+import fr.sorbonne_u.components.AbstractComponent;
+import fr.sorbonne_u.components.endpoints.BCMCompositeEndPoint;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentKeyI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.frontend.DHTServicesCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.CombinatorI;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceSyncI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceSyncCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ProcessorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ReductorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
-import fr.sorbonne_u.cps.mapreduce.endpoints.POJOContentNodeCompositeEndPoint;
 
-public class Facade 
+public class Facade
+extends AbstractComponent
 implements DHTServicesCI{
 
-	public Facade (POJOContentNodeCompositeEndPoint clientEndPoint) {
+	protected Facade(int nbThreads, int nbSchedulableThreads, BCMCompositeEndPoint clientEndPoint) {
+		super(nbThreads, nbSchedulableThreads);
 		clientEndPoint.initialiseClientSide(clientEndPoint);
-		this.mapReduceClient = clientEndPoint.getMapReduceEndpoint();
-		this.contentAccessClient = clientEndPoint.getContentAccessEndpoint();
+		this.endPointClient = clientEndPoint;
 	}
 	
-	private POJOEndPoint<ContentAccessSyncI> contentAccessClient;
-	private POJOEndPoint<MapReduceSyncI> mapReduceClient;
+	private BCMCompositeEndPoint endPointClient;
 	
 	
 	@Override
 	public ContentDataI get(ContentKeyI key) throws Exception {
-		this.contentAccessClient.getClientSideReference().clearComputation("get");
-		return this.contentAccessClient.getClientSideReference().getSync("get", key);
+		this.endPointClient.getEndPoint(ContentAccessSyncCI.class).getClientSideReference().clearComputation("get");
+		return this.endPointClient.getEndPoint(ContentAccessSyncCI.class).getClientSideReference().getSync("get", key);
 	}
 
 	@Override
 	public <R extends Serializable, A extends Serializable> A mapReduce(SelectorI selector, ProcessorI<R> processor,
 			ReductorI<A, R> reductor, CombinatorI<A> combinator, A identity) throws Exception {
-			this.mapReduceClient.getClientSideReference().clearMapReduceComputation("mapreduce");
-			this.mapReduceClient.getClientSideReference().mapSync("mapreduce", selector, processor);
-			this.mapReduceClient.getClientSideReference().clearMapReduceComputation("mapreduce");
-			return this.mapReduceClient.getClientSideReference().reduceSync("mapreduce", reductor, combinator, identity);
+			this.endPointClient.getEndPoint(MapReduceSyncCI.class).getClientSideReference().clearMapReduceComputation("mapreduce");
+			this.endPointClient.getEndPoint(MapReduceSyncCI.class).getClientSideReference().mapSync("mapreduce", selector, processor);
+			this.endPointClient.getEndPoint(MapReduceSyncCI.class).getClientSideReference().clearMapReduceComputation("mapreduce");
+			return this.endPointClient.getEndPoint(MapReduceSyncCI.class).getClientSideReference().reduceSync("mapreduce", reductor, combinator, identity);
 	}
 
 	@Override
 	public ContentDataI put(ContentKeyI key, ContentDataI data) throws Exception {
-		this.contentAccessClient.getClientSideReference().clearComputation("put");
-		return this.contentAccessClient.getClientSideReference().putSync("put", key, data); 
+		this.endPointClient.getEndPoint(ContentAccessSyncCI.class).getClientSideReference().clearComputation("put");
+		return this.endPointClient.getEndPoint(ContentAccessSyncCI.class).getClientSideReference().putSync("put", key, data); 
 	}
 
 	@Override
 	public ContentDataI remove(ContentKeyI key) throws Exception {
-		this.contentAccessClient.getClientSideReference().clearComputation("remove");
-		return this.contentAccessClient.getClientSideReference().removeSync("remove", key);
+		this.endPointClient.getEndPoint(ContentAccessSyncCI.class).getClientSideReference().clearComputation("remove");
+		return this.endPointClient.getEndPoint(ContentAccessSyncCI.class).getClientSideReference().removeSync("remove", key);
 	}
 
 }

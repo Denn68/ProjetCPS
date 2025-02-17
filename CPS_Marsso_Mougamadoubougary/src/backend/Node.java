@@ -7,21 +7,23 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import fr.sorbonne_u.components.endpoints.POJOEndPoint;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncI;
+import fr.sorbonne_u.components.AbstractComponent;
+import fr.sorbonne_u.components.endpoints.BCMCompositeEndPoint;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentKeyI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.CombinatorI;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceSyncI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceSyncCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ProcessorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ReductorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
-import fr.sorbonne_u.cps.mapreduce.endpoints.POJOContentNodeCompositeEndPoint;
 
 public class Node 
-implements ContentAccessSyncI, MapReduceSyncI{
+extends AbstractComponent
+implements ContentAccessSyncCI, MapReduceSyncCI{
 
-	public Node (int min, int max, POJOContentNodeCompositeEndPoint endPointServer, POJOContentNodeCompositeEndPoint endPointClient) {
+	protected Node(int nbThreads, int nbSchedulableThreads, int min, int max, BCMCompositeEndPoint endPointServer, BCMCompositeEndPoint endPointClient) {
+		super(nbThreads, nbSchedulableThreads);
 		this.intervalMin = min;
 		this.intervalMax = max;
 		this.tableHachage = new HashMap<Integer, ContentDataI>(max-min);
@@ -36,7 +38,7 @@ implements ContentAccessSyncI, MapReduceSyncI{
 	private int intervalMin;
 	private int intervalMax;
 	private List<String> listOfUri;
-	private POJOContentNodeCompositeEndPoint endPointClient;
+	private BCMCompositeEndPoint endPointClient;
 	
 	public boolean contains(ContentKeyI arg0) {
 		if(arg0.hashCode() >= intervalMin && arg0.hashCode() <= intervalMax) {
@@ -52,7 +54,7 @@ implements ContentAccessSyncI, MapReduceSyncI{
 		}
 		if(this.listOfUri.contains(computationUri)) {
 			this.listOfUri.remove(computationUri);
-			this.endPointClient.getMapReduceEndpoint().getClientSideReference().clearMapReduceComputation(computationUri);
+			this.endPointClient.getEndPoint(MapReduceSyncCI.class).getClientSideReference().clearMapReduceComputation(computationUri);
 		}
 	}
 
@@ -68,7 +70,7 @@ implements ContentAccessSyncI, MapReduceSyncI{
 		.filter(((Predicate<ContentDataI>) selector))
 		.map(processor)));
 		this.listOfUri.add(computationUri);
-		this.endPointClient.getMapReduceEndpoint().getClientSideReference().mapSync(computationUri, selector, processor);
+		this.endPointClient.getEndPoint(MapReduceSyncCI.class).getClientSideReference().mapSync(computationUri, selector, processor);
 	}
 
 	@Override
@@ -82,7 +84,7 @@ implements ContentAccessSyncI, MapReduceSyncI{
 		}
 		this.listOfUri.add(computationUri);
 		return combinator.apply(memoryTable.get(computationUri).reduce(filteredMap, (u,d) -> reductor.apply(u,(R) d), combinator), 
-				this.endPointClient.getMapReduceEndpoint().getClientSideReference().reduceSync(computationUri, reductor, combinator, filteredMap));
+				this.endPointClient.getEndPoint(MapReduceSyncCI.class).getClientSideReference().reduceSync(computationUri, reductor, combinator, filteredMap));
 	}
 
 	@Override
@@ -92,7 +94,7 @@ implements ContentAccessSyncI, MapReduceSyncI{
 		}
 		if(this.listOfUri.contains(computationUri)) {
 			this.listOfUri.remove(computationUri);
-			this.endPointClient.getMapReduceEndpoint().getClientSideReference().clearMapReduceComputation(computationUri);
+			this.endPointClient.getEndPoint(MapReduceSyncCI.class).getClientSideReference().clearMapReduceComputation(computationUri);
 		}
 	}
 
@@ -107,7 +109,7 @@ implements ContentAccessSyncI, MapReduceSyncI{
 			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
 		} else {
 			this.listOfUri.add(computationUri);
-			return this.endPointClient.getContentAccessEndpoint().getClientSideReference().getSync(computationUri, key);
+			return this.endPointClient.getEndPoint(ContentAccessSyncCI.class).getClientSideReference().getSync(computationUri, key);
 		}
 	}
 
@@ -122,7 +124,7 @@ implements ContentAccessSyncI, MapReduceSyncI{
 			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
 		} else{
 			this.listOfUri.add(computationUri);
-			return this.endPointClient.getContentAccessEndpoint().getClientSideReference().putSync(computationUri, key, data);
+			return this.endPointClient.getEndPoint(ContentAccessSyncCI.class).getClientSideReference().putSync(computationUri, key, data);
 		}
 	}
 
@@ -137,7 +139,7 @@ implements ContentAccessSyncI, MapReduceSyncI{
 			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
 		}else {
 			this.listOfUri.add(computationUri);
-			return this.endPointClient.getContentAccessEndpoint().getClientSideReference().removeSync(computationUri, key);
+			return this.endPointClient.getEndPoint(ContentAccessSyncCI.class).getClientSideReference().removeSync(computationUri, key);
 		}
 	}
 }

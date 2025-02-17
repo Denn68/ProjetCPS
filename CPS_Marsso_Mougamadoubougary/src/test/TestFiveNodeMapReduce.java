@@ -8,13 +8,14 @@ import org.junit.jupiter.api.Test;
 import backend.ContentKey;
 import backend.Node;
 import backend.Personne;
+import fr.sorbonne_u.components.endpoints.BCMCompositeEndPoint;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
 import fr.sorbonne_u.cps.mapreduce.endpoints.POJOContentNodeCompositeEndPoint;
 import frontend.Facade;
 
 public class TestFiveNodeMapReduce {
 	
-	private POJOContentNodeCompositeEndPoint ep1, ep2, ep3, ep4, ep5;
+	private BCMCompositeEndPoint ep1, ep2, ep3, ep4, ep5;
 	private Facade frontend;
 	private Node node1, node2, node3, node4, node5;
 	private ContentKey key1, key2, key3, key4, key5, key6;
@@ -37,7 +38,7 @@ public class TestFiveNodeMapReduce {
 	@BeforeEach
     public void setUp() {
 		
-		ep1 = new POJOContentNodeCompositeEndPoint();
+		ep1 = new BCMCompositeEndPoint()
 		ep2 = new POJOContentNodeCompositeEndPoint();
 		ep3 = new POJOContentNodeCompositeEndPoint();
 		ep4 = new POJOContentNodeCompositeEndPoint();
