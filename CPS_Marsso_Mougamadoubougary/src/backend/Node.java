@@ -17,20 +17,31 @@ import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceSyncCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ProcessorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ReductorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
+import frontend.DHTContentEndpoint;
+import frontend.DHTMapReduceEndpoint;
 
 public class Node 
 extends AbstractComponent
 implements ContentAccessSyncCI, MapReduceSyncCI{
 
-	protected Node(int nbThreads, int nbSchedulableThreads, int min, int max, BCMCompositeEndPoint endPointServer, BCMCompositeEndPoint endPointClient) {
+	public Node(int nbThreads, int nbSchedulableThreads, int min, int max, 
+			DHTContentEndpoint dhtContentEndPointServer, DHTMapReduceEndpoint dhtMapReduceEndpointServer,
+			ContentAccessEndpoint contentEndPointServer, ContentAccessEndpoint contentEndPointClient,
+			MapReduceEndpoint mapReduceEndPointServer, MapReduceEndpoint mapReduceEndPointClient) {
 		super(nbThreads, nbSchedulableThreads);
 		this.intervalMin = min;
 		this.intervalMax = max;
 		this.tableHachage = new HashMap<Integer, ContentDataI>(max-min);
 		this.memoryTable = new HashMap<>();
 		this.listOfUri = new ArrayList<String>();
-		endPointServer.initialiseServerSide(this);
-		this.endPointClient = endPointClient;
+		contentEndPointServer.initialiseServerSide(this);
+		mapReduceEndPointServer.initialiseServerSide(this);
+		if(dhtContentEndPointServer != null && dhtMapReduceEndpointServer != null) {
+			dhtContentEndPointServer.initialiseServerSide(dhtContentEndPointServer);
+			dhtMapReduceEndpointServer.initialiseServerSide(dhtMapReduceEndpointServer);
+		}
+		this.contentEndPointClient = contentEndPointClient;
+		this.mapReduceEndPointClient = mapReduceEndPointClient;
 	}
 	
 	private HashMap<Integer, ContentDataI> tableHachage;
@@ -38,7 +49,8 @@ implements ContentAccessSyncCI, MapReduceSyncCI{
 	private int intervalMin;
 	private int intervalMax;
 	private List<String> listOfUri;
-	private BCMCompositeEndPoint endPointClient;
+	private ContentAccessEndpoint contentEndPointClient;
+	private MapReduceEndpoint mapReduceEndPointClient;
 	
 	public boolean contains(ContentKeyI arg0) {
 		if(arg0.hashCode() >= intervalMin && arg0.hashCode() <= intervalMax) {
@@ -49,19 +61,19 @@ implements ContentAccessSyncCI, MapReduceSyncCI{
 
 	@Override
 	public void clearMapReduceComputation(String computationUri) throws Exception {
-		if(!endPointClient.clientSideInitialised()) {
-			endPointClient.initialiseClientSide(endPointClient);
+		if(!this.mapReduceEndPointClient.clientSideInitialised()) {
+			this.mapReduceEndPointClient.initialiseClientSide(this.mapReduceEndPointClient);
 		}
 		if(this.listOfUri.contains(computationUri)) {
 			this.listOfUri.remove(computationUri);
-			this.endPointClient.getEndPoint(MapReduceSyncCI.class).getClientSideReference().clearMapReduceComputation(computationUri);
+			this.mapReduceEndPointClient.getClientSideReference().clearMapReduceComputation(computationUri);
 		}
 	}
 
 	@Override
 	public <R extends Serializable> void mapSync(String computationUri, SelectorI selector, ProcessorI<R> processor) throws Exception {
-		if(!endPointClient.clientSideInitialised()) {
-			endPointClient.initialiseClientSide(endPointClient);
+		if(!this.mapReduceEndPointClient.clientSideInitialised()) {
+			this.mapReduceEndPointClient.initialiseClientSide(this.mapReduceEndPointClient);
 		}
 		if(this.listOfUri.contains(computationUri)) {
 			return;
@@ -70,7 +82,7 @@ implements ContentAccessSyncCI, MapReduceSyncCI{
 		.filter(((Predicate<ContentDataI>) selector))
 		.map(processor)));
 		this.listOfUri.add(computationUri);
-		this.endPointClient.getEndPoint(MapReduceSyncCI.class).getClientSideReference().mapSync(computationUri, selector, processor);
+		this.mapReduceEndPointClient.getClientSideReference().mapSync(computationUri, selector, processor);
 	}
 
 	@Override
@@ -79,29 +91,29 @@ implements ContentAccessSyncCI, MapReduceSyncCI{
 		if(this.listOfUri.contains(computationUri)) {
 			return filteredMap;
 		}
-		if(!endPointClient.clientSideInitialised()) {
-			endPointClient.initialiseClientSide(endPointClient);
+		if(!this.mapReduceEndPointClient.clientSideInitialised()) {
+			this.mapReduceEndPointClient.initialiseClientSide(this.mapReduceEndPointClient);
 		}
 		this.listOfUri.add(computationUri);
 		return combinator.apply(memoryTable.get(computationUri).reduce(filteredMap, (u,d) -> reductor.apply(u,(R) d), combinator), 
-				this.endPointClient.getEndPoint(MapReduceSyncCI.class).getClientSideReference().reduceSync(computationUri, reductor, combinator, filteredMap));
+				this.mapReduceEndPointClient.getClientSideReference().reduceSync(computationUri, reductor, combinator, filteredMap));
 	}
 
 	@Override
 	public void clearComputation(String computationUri) throws Exception {
-		if(!endPointClient.clientSideInitialised()) {
-			endPointClient.initialiseClientSide(endPointClient);
+		if(!this.mapReduceEndPointClient.clientSideInitialised()) {
+			this.mapReduceEndPointClient.initialiseClientSide(this.mapReduceEndPointClient);
 		}
 		if(this.listOfUri.contains(computationUri)) {
 			this.listOfUri.remove(computationUri);
-			this.endPointClient.getEndPoint(MapReduceSyncCI.class).getClientSideReference().clearMapReduceComputation(computationUri);
+			this.mapReduceEndPointClient.getClientSideReference().clearMapReduceComputation(computationUri);
 		}
 	}
 
 	@Override
 	public ContentDataI getSync(String computationUri, ContentKeyI key) throws Exception {
-		if(!endPointClient.clientSideInitialised()) {
-			endPointClient.initialiseClientSide(endPointClient);
+		if(!this.contentEndPointClient.clientSideInitialised()) {
+			this.contentEndPointClient.initialiseClientSide(this.contentEndPointClient);
 		}
 		if (this.contains(key)) {
 			return tableHachage.get(key.hashCode());
@@ -109,14 +121,14 @@ implements ContentAccessSyncCI, MapReduceSyncCI{
 			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
 		} else {
 			this.listOfUri.add(computationUri);
-			return this.endPointClient.getEndPoint(ContentAccessSyncCI.class).getClientSideReference().getSync(computationUri, key);
+			return this.contentEndPointClient.getClientSideReference().getSync(computationUri, key);
 		}
 	}
 
 	@Override
 	public ContentDataI putSync(String computationUri, ContentKeyI key, ContentDataI data) throws Exception {
-		if(!endPointClient.clientSideInitialised()) {
-			endPointClient.initialiseClientSide(endPointClient);
+		if(!this.contentEndPointClient.clientSideInitialised()) {
+			this.contentEndPointClient.initialiseClientSide(this.contentEndPointClient);
 		}
 		if (this.contains(key)) {
 			return tableHachage.put(key.hashCode(), data);
@@ -124,14 +136,14 @@ implements ContentAccessSyncCI, MapReduceSyncCI{
 			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
 		} else{
 			this.listOfUri.add(computationUri);
-			return this.endPointClient.getEndPoint(ContentAccessSyncCI.class).getClientSideReference().putSync(computationUri, key, data);
+			return this.contentEndPointClient.getClientSideReference().putSync(computationUri, key, data);
 		}
 	}
 
 	@Override
 	public ContentDataI removeSync(String computationUri, ContentKeyI key) throws Exception {
-		if(!endPointClient.clientSideInitialised()) {
-			endPointClient.initialiseClientSide(endPointClient);
+		if(!this.contentEndPointClient.clientSideInitialised()) {
+			this.contentEndPointClient.initialiseClientSide(this.contentEndPointClient);
 		}
 		if (this.contains(key)) {
 			return tableHachage.remove(key.hashCode());
@@ -139,7 +151,7 @@ implements ContentAccessSyncCI, MapReduceSyncCI{
 			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
 		}else {
 			this.listOfUri.add(computationUri);
-			return this.endPointClient.getEndPoint(ContentAccessSyncCI.class).getClientSideReference().removeSync(computationUri, key);
+			return this.contentEndPointClient.getClientSideReference().removeSync(computationUri, key);
 		}
 	}
 }

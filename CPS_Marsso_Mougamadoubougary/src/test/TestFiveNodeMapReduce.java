@@ -5,17 +5,26 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import backend.ContentAccessEndpoint;
 import backend.ContentKey;
+import backend.MapReduceEndpoint;
 import backend.Node;
 import backend.Personne;
-import fr.sorbonne_u.components.endpoints.BCMCompositeEndPoint;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
-import fr.sorbonne_u.cps.mapreduce.endpoints.POJOContentNodeCompositeEndPoint;
+import frontend.DHTContentEndpoint;
+import frontend.DHTMapReduceEndpoint;
 import frontend.Facade;
 
 public class TestFiveNodeMapReduce {
 	
-	private BCMCompositeEndPoint ep1, ep2, ep3, ep4, ep5;
+	private DHTContentEndpoint ep1; 
+	private DHTMapReduceEndpoint ep2;
+	private ContentAccessEndpoint ep3;
+	private MapReduceEndpoint ep4;
+	private ContentAccessEndpoint ep5;
+	private MapReduceEndpoint ep6;
+	private ContentAccessEndpoint ep7;
+	private MapReduceEndpoint ep8;
 	private Facade frontend;
 	private Node node1, node2, node3, node4, node5;
 	private ContentKey key1, key2, key3, key4, key5, key6;
@@ -38,19 +47,24 @@ public class TestFiveNodeMapReduce {
 	@BeforeEach
     public void setUp() {
 		
-		ep1 = new BCMCompositeEndPoint()
-		ep2 = new POJOContentNodeCompositeEndPoint();
-		ep3 = new POJOContentNodeCompositeEndPoint();
-		ep4 = new POJOContentNodeCompositeEndPoint();
-		ep5 = new POJOContentNodeCompositeEndPoint();
+		ep1 = new DHTContentEndpoint();
+		ep2 = new DHTMapReduceEndpoint();
+		ep3=  new ContentAccessEndpoint();
+		ep4 = new MapReduceEndpoint();
+		ep5 = new ContentAccessEndpoint();
+		ep6 = new MapReduceEndpoint();
+		ep7 = new ContentAccessEndpoint();
+		ep8 = new MapReduceEndpoint();
 		
-		node1 = new Node(0, 399, ep1, ep2);
+		node1 = new Node(10, 10, 0, 399, ep1, ep2, ep3, ep5, ep4, ep6);
+		/*
 		node2 = new Node(400, 799, ep2, ep3);
 		node3 = new Node(800, 1199, ep3, ep4);
 		node4 = new Node(1200, 1599, ep4, ep5);
-		node5 = new Node(1600, 1999, ep5, ep1);
+		*/
+		node5 = new Node(10, 10, 0, 399, null, null, ep5, ep7, ep6, ep8);
 		
-		frontend = new Facade(ep1);
+		frontend = new Facade(10, 10, ep1, ep2);
 		
 		key1 = new ContentKey(350); // 350
 		data1 = new Personne(P1_nom, P1_age);
