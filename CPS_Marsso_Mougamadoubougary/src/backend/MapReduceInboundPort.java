@@ -14,8 +14,8 @@ public class MapReduceInboundPort
 extends AbstractInboundPort
 implements MapReduceSyncCI{
 
-	public MapReduceInboundPort(ComponentI owner) throws Exception {
-		super(MapReduceSyncCI.class, owner);
+	public MapReduceInboundPort(String uri, ComponentI owner) throws Exception {
+		super(uri, MapReduceSyncCI.class, owner);
 	}
 
 	private static final long serialVersionUID = 1L;

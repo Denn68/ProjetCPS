@@ -4,7 +4,6 @@ import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.AbstractPort;
 import fr.sorbonne_u.components.endpoints.BCMEndPoint;
 import fr.sorbonne_u.components.ports.AbstractInboundPort;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.frontend.DHTServicesCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceSyncCI;
 import fr.sorbonne_u.exceptions.ImplementationInvariantException;
 import fr.sorbonne_u.exceptions.InvariantException;
@@ -32,7 +31,7 @@ extends BCMEndPoint<MapReduceSyncCI>{
 						"inboundPortURI != null && !inboundPortURI.isEmpty()");
 
 		MapReduceInboundPort p =
-				new MapReduceInboundPort(c);
+				new MapReduceInboundPort(this.inboundPortURI, c);
 		p.publishPort();
 
 		// Postconditions checking
@@ -57,7 +56,7 @@ extends BCMEndPoint<MapReduceSyncCI>{
 	}
 
 	@Override
-	protected MapReduceSyncCI makeOutboundPort(AbstractComponent c, String outboundPortURI, String inboundPortURI)
+	protected MapReduceSyncCI makeOutboundPort(AbstractComponent c, String inboundPortURI)
 			throws Exception {
 		// Preconditions checking
 				assert	c != null : new PreconditionException("c != null");
@@ -67,7 +66,7 @@ extends BCMEndPoint<MapReduceSyncCI>{
 				p.publishPort();
 				c.doPortConnection(
 						p.getPortURI(),
-						inboundPortURI,
+						this.inboundPortURI,
 						MapReduceConnector.class.getCanonicalName());
 
 				// Postconditions checking

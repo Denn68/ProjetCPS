@@ -5,7 +5,6 @@ import fr.sorbonne_u.components.AbstractPort;
 import fr.sorbonne_u.components.endpoints.BCMEndPoint;
 import fr.sorbonne_u.components.ports.AbstractInboundPort;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncCI;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.frontend.DHTServicesCI;
 import fr.sorbonne_u.exceptions.ImplementationInvariantException;
 import fr.sorbonne_u.exceptions.InvariantException;
 import fr.sorbonne_u.exceptions.PostconditionException;
@@ -32,7 +31,7 @@ extends BCMEndPoint<ContentAccessSyncCI>{
 						"inboundPortURI != null && !inboundPortURI.isEmpty()");
 
 		ContentAccessInboundPort p =
-				new ContentAccessInboundPort(c);
+				new ContentAccessInboundPort(this.inboundPortURI, c);
 		p.publishPort();
 
 		// Postconditions checking
@@ -57,7 +56,7 @@ extends BCMEndPoint<ContentAccessSyncCI>{
 	}
 
 	@Override
-	protected ContentAccessSyncCI makeOutboundPort(AbstractComponent c, String outboundPortURI, String inboundPortURI)
+	protected ContentAccessSyncCI makeOutboundPort(AbstractComponent c, String inboundPortURI)
 			throws Exception {
 		// Preconditions checking
 				assert	c != null : new PreconditionException("c != null");
@@ -67,7 +66,7 @@ extends BCMEndPoint<ContentAccessSyncCI>{
 				p.publishPort();
 				c.doPortConnection(
 						p.getPortURI(),
-						inboundPortURI,
+						this.inboundPortURI,
 						ContentAccessConnector.class.getCanonicalName());
 
 				// Postconditions checking

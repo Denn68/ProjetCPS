@@ -15,9 +15,9 @@ import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
 public class DHTInboundPort 
 extends AbstractInboundPort
 implements DHTServicesCI{
-
-	public DHTInboundPort(ComponentI owner) throws Exception {
-		super(DHTServicesCI.class, owner);
+	
+	public DHTInboundPort(String uri,  ComponentI owner) throws Exception {
+		super(uri, DHTServicesCI.class, owner);
 	}
 
 	private static final long serialVersionUID = 1L;

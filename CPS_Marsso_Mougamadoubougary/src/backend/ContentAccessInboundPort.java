@@ -11,8 +11,8 @@ public class ContentAccessInboundPort
 extends AbstractInboundPort
 implements ContentAccessSyncCI{
 
-	public ContentAccessInboundPort(ComponentI owner) throws Exception {
-		super(ContentAccessSyncCI.class, owner);
+	public ContentAccessInboundPort(String uri, ComponentI owner) throws Exception {
+		super(uri, ContentAccessSyncCI.class, owner);
 	}
 
 	private static final long serialVersionUID = 1L;
