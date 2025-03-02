@@ -11,6 +11,7 @@ import backend.ContentKey;
 import backend.MapReduceEndpoint;
 import backend.Node;
 import backend.Personne;
+import fr.sorbonne_u.components.exceptions.ConnectionException;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
 import frontend.Client;
 import frontend.DHTServicesEndpoint;
@@ -48,15 +49,21 @@ public class TestFiveNodeMapReduce {
 		ep2 = new CompositeEndPoint(2);
 		ep3 = new CompositeEndPoint(2);
 		
-		node1 = new Node(10, 10, 0, 399, ep2, ep3);
-		/*
-		node2 = new Node(400, 799, ep2, ep3);
-		node3 = new Node(800, 1199, ep3, ep4);
-		node4 = new Node(1200, 1599, ep4, ep5);
-		*/
-		node5 = new Node(10, 10, 0, 399, ep3, ep2);
 		
-		frontend = new Facade(10, 10, ep1, ep2);
+		
+		try {
+			node1 = new Node(10, 10, 0, 399, ep2, ep3);
+			/*
+			node2 = new Node(400, 799, ep2, ep3);
+			node3 = new Node(800, 1199, ep3, ep4);
+			node4 = new Node(1200, 1599, ep4, ep5);
+			*/
+			node5 = new Node(10, 10, 0, 399, ep3, ep2);
+			frontend = new Facade(10, 10, ep1, ep2);
+		} catch (ConnectionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		client = new Client(10, 10, ep1);
 		
