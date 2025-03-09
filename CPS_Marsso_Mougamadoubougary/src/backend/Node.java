@@ -10,12 +10,15 @@ import java.util.stream.Stream;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
+import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.exceptions.ConnectionException;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentKeyI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.CombinatorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceSyncCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceSyncI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ProcessorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ReductorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
@@ -25,9 +28,9 @@ import frontend.DHTServicesEndpoint;
 @RequiredInterfaces(required = { ContentAccessSyncCI.class, MapReduceSyncCI.class })
 public class Node 
 extends AbstractComponent
-implements ContentAccessSyncCI, MapReduceSyncCI{
+implements ContentAccessSyncI, MapReduceSyncI{
 
-	public Node(int nbThreads, int nbSchedulableThreads, int min, int max, 
+	protected Node(int nbThreads, int nbSchedulableThreads, int min, int max, 
 			CompositeEndPoint compositeEndPointServer, CompositeEndPoint compositeEndPointClient) throws ConnectionException {
 		super(nbThreads, nbSchedulableThreads);
 		this.intervalMin = min;
@@ -51,6 +54,39 @@ implements ContentAccessSyncCI, MapReduceSyncCI{
 			return true;
 		}
 		return false;
+	}
+	
+	@Override
+	public void start() {
+		try {
+			super.start();
+		} catch (ComponentStartException e) {
+			e.printStackTrace();
+		}
+		if(!this.compositeEndPointClient.clientSideInitialised()) {
+			try {
+				this.compositeEndPointClient.initialiseClientSide(this);
+			} catch (ConnectionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if(!this.compositeEndPointClient.getContentAccessEndpoint().clientSideInitialised()) {
+			try {
+				this.compositeEndPointClient.getContentAccessEndpoint().initialiseClientSide(this);
+			} catch (ConnectionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if(!this.compositeEndPointClient.getMapReduceEndpoint().clientSideInitialised()) {
+			try {
+				this.compositeEndPointClient.getMapReduceEndpoint().initialiseClientSide(this);
+			} catch (ConnectionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 
 	@Override

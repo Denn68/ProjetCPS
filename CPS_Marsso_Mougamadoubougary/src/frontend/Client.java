@@ -1,7 +1,5 @@
 package frontend;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
-
 import java.io.Serializable;
 
 import backend.ContentKey;
@@ -23,7 +21,7 @@ public class Client
 extends AbstractComponent
 {
 
-	public Client(int nbThreads, int nbSchedulableThreads, DHTServicesEndpoint dhtEndPointClient) {
+	protected Client(int nbThreads, int nbSchedulableThreads, DHTServicesEndpoint dhtEndPointClient) {
 		super(nbThreads, nbSchedulableThreads);
 		this.dhtEndPointClient = dhtEndPointClient;
 	}
@@ -108,46 +106,46 @@ extends AbstractComponent
                     //System.out.println(((Client) this.getTaskOwner()).get(key1).getValue(attAGE));
         			
         			ContentDataI oldPerson1 = ((Client) this.getTaskOwner()).put(key1, data1);
-        			System.out.println(((Client) this.getTaskOwner()).get(key1).getValue(attNOM));
-                    System.out.println(((Client) this.getTaskOwner()).get(key1).getValue(attAGE));
-        			//assert oldPerson1 == null : "Type incorrect";
-        			//assert ((Client) this.getTaskOwner()).get(key1).getValue(attNOM).equals(P1_nom) : "Nom incorrect";
-        			//assert (((Client) this.getTaskOwner()).get(key1).getValue(attAGE)).equals(P1_age) : "Age incorrect";
-        			
+        			//System.out.println(((Client) this.getTaskOwner()).get(key1).getValue(attNOM));
+                    //System.out.println(((Client) this.getTaskOwner()).get(key1).getValue(attAGE));
+        			assert oldPerson1 == null : "Type incorrect";
+        			assert ((Client) this.getTaskOwner()).get(key1).getValue(attNOM).equals(P1_nom) : "Nom incorrect";
+        			assert (((Client) this.getTaskOwner()).get(key1).getValue(attAGE)).equals(P1_age) : "Age incorrect";
+        		
         			ContentDataI oldPerson2 = ((Client) this.getTaskOwner()).put(key2, data2);
-        			System.out.println(((Client) this.getTaskOwner()).get(key2).getValue(attNOM));
-                    System.out.println(((Client) this.getTaskOwner()).get(key2).getValue(attAGE));
-        			//assert oldPerson2 == null : "Type incorrect";
-        			//assert ((Client) this.getTaskOwner()).get(key2).getValue(attNOM).equals(P2_nom) : "Nom incorrect";
-        			//assert ((Client) this.getTaskOwner()).get(key2).getValue(attAGE).equals(P2_age) : "Age incorrect";
+        			//System.out.println(((Client) this.getTaskOwner()).get(key2).getValue(attNOM));
+                    //System.out.println(((Client) this.getTaskOwner()).get(key2).getValue(attAGE));
+        			assert oldPerson2 == null : "Type incorrect";
+        			assert ((Client) this.getTaskOwner()).get(key2).getValue(attNOM).equals(P2_nom) : "Nom incorrect";
+        			assert ((Client) this.getTaskOwner()).get(key2).getValue(attAGE).equals(P2_age) : "Age incorrect";
         			
         			ContentDataI oldPerson3 = ((Client) this.getTaskOwner()).put(key3, data3);
-        			System.out.println(((Client) this.getTaskOwner()).get(key3).getValue(attNOM));
-                    System.out.println(((Client) this.getTaskOwner()).get(key3).getValue(attAGE));
-        			//assert oldPerson3 == null : "Type incorrect";
-        			//assert ((Client) this.getTaskOwner()).get(key3).getValue(attNOM).equals(P3_nom) : "Nom incorrect";
-        			//assert ((Client) this.getTaskOwner()).get(key3).getValue(attAGE).equals(P3_age) : "Age incorrect";
+        			//System.out.println(((Client) this.getTaskOwner()).get(key3).getValue(attNOM));
+                    //System.out.println(((Client) this.getTaskOwner()).get(key3).getValue(attAGE));
+        			assert oldPerson3 == null : "Type incorrect";
+        			assert ((Client) this.getTaskOwner()).get(key3).getValue(attNOM).equals(P3_nom) : "Nom incorrect";
+        			assert ((Client) this.getTaskOwner()).get(key3).getValue(attAGE).equals(P3_age) : "Age incorrect";
         			
         			ContentDataI oldPerson4 = ((Client) this.getTaskOwner()).put(key4, data4);
-        			System.out.println(((Client) this.getTaskOwner()).get(key4).getValue(attNOM));
-                    System.out.println(((Client) this.getTaskOwner()).get(key4).getValue(attAGE));
-        			//assert oldPerson4 == null : "Type incorrect";
-        			//assert ((Client) this.getTaskOwner()).get(key4).getValue(attNOM).equals(P4_nom) : "Nom incorrect";
-        			//assert ((Client) this.getTaskOwner()).get(key4).getValue(attAGE).equals(P4_age) : "Age incorrect";
+        			//System.out.println(((Client) this.getTaskOwner()).get(key4).getValue(attNOM));
+                    //System.out.println(((Client) this.getTaskOwner()).get(key4).getValue(attAGE));
+        			assert oldPerson4 == null : "Type incorrect";
+        			assert ((Client) this.getTaskOwner()).get(key4).getValue(attNOM).equals(P4_nom) : "Nom incorrect";
+        			assert ((Client) this.getTaskOwner()).get(key4).getValue(attAGE).equals(P4_age) : "Age incorrect";
         			
         			ContentDataI oldPerson5 = ((Client) this.getTaskOwner()).put(key5, data5);
-        			System.out.println(((Client) this.getTaskOwner()).get(key5).getValue(attNOM));
-                    System.out.println(((Client) this.getTaskOwner()).get(key5).getValue(attAGE));
-        			//assert oldPerson5 == null : "Type incorrect";
-        			//assert ((Client) this.getTaskOwner()).get(key5).getValue(attNOM).equals(P5_nom) : "Nom incorrect";
-        			//assert ((Client) this.getTaskOwner()).get(key5).getValue(attAGE).equals(P5_age) : "Age incorrect";
+        			//System.out.println(((Client) this.getTaskOwner()).get(key5).getValue(attNOM));
+                    //System.out.println(((Client) this.getTaskOwner()).get(key5).getValue(attAGE));
+        			assert oldPerson5 == null : "Type incorrect";
+        			assert ((Client) this.getTaskOwner()).get(key5).getValue(attNOM).equals(P5_nom) : "Nom incorrect";
+        			assert ((Client) this.getTaskOwner()).get(key5).getValue(attAGE).equals(P5_age) : "Age incorrect";
 
         			ContentDataI oldPerson6 = ((Client) this.getTaskOwner()).put(key6, data6);
-        			System.out.println(((Client) this.getTaskOwner()).get(key6).getValue(attNOM));
-                    System.out.println(((Client) this.getTaskOwner()).get(key6).getValue(attAGE));
-        			//assert oldPerson6 == null : "Type incorrect";
-        			//assert ((Client) this.getTaskOwner()).get(key6).getValue(attNOM).equals(P6_nom) : "Nom incorrect";
-        			//assert ((Client) this.getTaskOwner()).get(key6).getValue(attAGE).equals(P6_age) : "Age incorrect";
+        			//System.out.println(((Client) this.getTaskOwner()).get(key6).getValue(attNOM));
+                    //System.out.println(((Client) this.getTaskOwner()).get(key6).getValue(attAGE));
+        			assert oldPerson6 != null : "Type incorrect";
+        			assert ((Client) this.getTaskOwner()).get(key6).getValue(attNOM).equals(P6_nom) : "Nom incorrect";
+        			assert ((Client) this.getTaskOwner()).get(key6).getValue(attAGE).equals(P6_age) : "Age incorrect";
         			
         			int res = ((Client) this.getTaskOwner()).mapReduce(
         					(item) -> ((int) item.getValue(attAGE)) % 2 == 0,
@@ -156,8 +154,8 @@ extends AbstractComponent
         					(a1, a2) -> a1 + a2,
         					10);
         			
-        			//assert res == 356 : "MapReduce incorrect";
-        			System.out.println(res);
+        			assert res == 356 : "MapReduce incorrect";
+        			System.out.println("No problem");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

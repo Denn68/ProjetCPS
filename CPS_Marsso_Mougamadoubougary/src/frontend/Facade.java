@@ -12,6 +12,7 @@ import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentKeyI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.frontend.DHTServicesCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.frontend.DHTServicesI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.CombinatorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceSyncCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ProcessorI;
@@ -22,9 +23,9 @@ import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
 @RequiredInterfaces(required = { ContentAccessSyncCI.class, MapReduceSyncCI.class })
 public class Facade
 extends AbstractComponent
-implements DHTServicesCI{
+implements DHTServicesI{
 
-	public Facade(int nbThreads, int nbSchedulableThreads, 
+	protected Facade(int nbThreads, int nbSchedulableThreads, 
 			DHTServicesEndpoint dhtEndPointServer, CompositeEndPoint compositeEndPointClient) throws ConnectionException {
 		super(nbThreads, nbSchedulableThreads);
 		dhtEndPointServer.initialiseServerSide(this);
@@ -46,35 +47,51 @@ implements DHTServicesCI{
 				e.printStackTrace();
 			}
 		}
+		if(!this.compositeEndPointClient.getContentAccessEndpoint().clientSideInitialised()) {
+			try {
+				this.compositeEndPointClient.getContentAccessEndpoint().initialiseClientSide(this);
+			} catch (ConnectionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if(!this.compositeEndPointClient.getMapReduceEndpoint().clientSideInitialised()) {
+			try {
+				this.compositeEndPointClient.getMapReduceEndpoint().initialiseClientSide(this);
+			} catch (ConnectionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	private CompositeEndPoint compositeEndPointClient;
 	
 	
 	@Override
 	public ContentDataI get(ContentKeyI key) throws Exception {
-		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation("get");
-		return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().getSync("get", key);
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation("get " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI());
+		return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().getSync("get " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI(), key);
 	}
 
 	@Override
 	public <R extends Serializable, A extends Serializable> A mapReduce(SelectorI selector, ProcessorI<R> processor,
 			ReductorI<A, R> reductor, CombinatorI<A> combinator, A identity) throws Exception {
-			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().clearMapReduceComputation("mapreduce");
-			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().mapSync("mapreduce", selector, processor);
-			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().clearMapReduceComputation("mapreduce");
-			return this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().reduceSync("mapreduce", reductor, combinator, identity);
+			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().clearMapReduceComputation("mapreduce " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI());
+			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().mapSync("mapreduce " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI(), selector, processor);
+			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().clearMapReduceComputation("mapreduce " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI());
+			return this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().reduceSync("mapreduce " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI(), reductor, combinator, identity);
 	}
 
 	@Override
 	public ContentDataI put(ContentKeyI key, ContentDataI data) throws Exception {
-		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation("put");
-		return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().putSync("put", key, data); 
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation("put " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI());
+		return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().putSync("put " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI(), key, data); 
 	}
 
 	@Override
 	public ContentDataI remove(ContentKeyI key) throws Exception {
-		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation("remove");
-		return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().removeSync("remove", key);
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation("remove " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI());
+		return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().removeSync("remove " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI(), key);
 	}
 
 }
