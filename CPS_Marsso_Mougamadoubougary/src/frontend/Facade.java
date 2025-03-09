@@ -18,6 +18,7 @@ import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceSyncCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ProcessorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ReductorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
+import fr.sorbonne_u.cps.mapreduce.utils.URIGenerator;
 
 @OfferedInterfaces(offered = { DHTServicesCI.class })
 @RequiredInterfaces(required = { ContentAccessSyncCI.class, MapReduceSyncCI.class })
@@ -69,29 +70,33 @@ implements DHTServicesI{
 	
 	@Override
 	public ContentDataI get(ContentKeyI key) throws Exception {
-		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation("get " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI());
-		return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().getSync("get " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI(), key);
+		String uri = URIGenerator.generateURI("get");
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation(uri);
+		return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().getSync(uri, key);
 	}
 
 	@Override
 	public <R extends Serializable, A extends Serializable> A mapReduce(SelectorI selector, ProcessorI<R> processor,
 			ReductorI<A, R> reductor, CombinatorI<A> combinator, A identity) throws Exception {
-			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().clearMapReduceComputation("mapreduce " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI());
-			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().mapSync("mapreduce " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI(), selector, processor);
-			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().clearMapReduceComputation("mapreduce " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI());
-			return this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().reduceSync("mapreduce " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI(), reductor, combinator, identity);
+			String uri = URIGenerator.generateURI("mapreduce");
+			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().clearMapReduceComputation(uri);
+			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().mapSync(uri, selector, processor);
+			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().clearMapReduceComputation(uri);
+			return this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().reduceSync(uri, reductor, combinator, identity);
 	}
 
 	@Override
 	public ContentDataI put(ContentKeyI key, ContentDataI data) throws Exception {
-		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation("put " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI());
-		return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().putSync("put " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI(), key, data); 
+		String uri = URIGenerator.generateURI("put");
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation(uri);
+		return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().putSync(uri, key, data); 
 	}
 
 	@Override
 	public ContentDataI remove(ContentKeyI key) throws Exception {
-		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation("remove " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI());
-		return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().removeSync("remove " + this.compositeEndPointClient.getContentAccessEndpoint().getInboundPortURI(), key);
+		String uri = URIGenerator.generateURI("remove");
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation(uri);
+		return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().removeSync(uri, key);
 	}
 
 }
