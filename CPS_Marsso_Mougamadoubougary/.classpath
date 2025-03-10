@@ -7,7 +7,7 @@
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
-	<classpathentry kind="lib" path="/ProjetCPS/CPS-2025-etape3/CPS-2025-etape3/BCM4Java-21022025.jar"/>
-	<classpathentry kind="lib" path="/ProjetCPS/CPS-2025-etape3/CPS-2025-etape3/CPS-2025-DHT-etape3.jar"/>
+	<classpathentry kind="lib" path="/CPS_Initial/BCM4Java-21022025.jar"/>
+	<classpathentry kind="lib" path="/CPS_Initial/CPS-2025-DHT-etape3.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

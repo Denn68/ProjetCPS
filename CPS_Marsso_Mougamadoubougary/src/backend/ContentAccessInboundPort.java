@@ -1,18 +1,19 @@
 package backend;
 
-
 import fr.sorbonne_u.components.ComponentI;
+import fr.sorbonne_u.components.endpoints.EndPointI;
 import fr.sorbonne_u.components.ports.AbstractInboundPort;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentKeyI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ResultReceptionCI;
 
 public class ContentAccessInboundPort 
 extends AbstractInboundPort
-implements ContentAccessSyncCI{
+implements ContentAccessCI{
 
 	public ContentAccessInboundPort(String uri, ComponentI owner) throws Exception {
-		super(uri, ContentAccessSyncCI.class, owner);
+		super(uri, ContentAccessCI.class, owner);
 	}
 
 	private static final long serialVersionUID = 1L;
@@ -38,6 +39,47 @@ implements ContentAccessSyncCI{
 	@Override
 	public void clearComputation(String computationURI) throws Exception {
 		this.getOwner().handleRequest(owner -> {((Node)owner).clearComputation(computationURI);return null;});
+		
+	}
+
+	@Override
+	public <I extends ResultReceptionCI> void get(String computationURI, ContentKeyI key, EndPointI<I> caller)
+			throws Exception {
+		this.getOwner().runTask(owner -> {
+			try {
+				((Node)owner).get(computationURI, key, caller);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});		
+	}
+
+	@Override
+	public <I extends ResultReceptionCI> void put(String computationURI, ContentKeyI key, ContentDataI value,
+			EndPointI<I> caller) throws Exception {
+		this.getOwner().runTask(owner -> {
+			try {
+				((Node)owner).put(computationURI, key, value, caller);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});	
+		
+	}
+
+	@Override
+	public <I extends ResultReceptionCI> void remove(String computationURI, ContentKeyI key, EndPointI<I> caller)
+			throws Exception {
+		this.getOwner().runTask(owner -> {
+			try {
+				((Node)owner).remove(computationURI, key, caller);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});	
 		
 	}
 

@@ -4,17 +4,17 @@ import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.AbstractPort;
 import fr.sorbonne_u.components.endpoints.BCMEndPoint;
 import fr.sorbonne_u.components.ports.AbstractInboundPort;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceSyncCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceCI;
 import fr.sorbonne_u.exceptions.ImplementationInvariantException;
 import fr.sorbonne_u.exceptions.InvariantException;
 import fr.sorbonne_u.exceptions.PostconditionException;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
 public class MapReduceEndpoint 
-extends BCMEndPoint<MapReduceSyncCI>{
+extends BCMEndPoint<MapReduceCI>{
 
 	public MapReduceEndpoint() {
-		super(MapReduceSyncCI.class, MapReduceSyncCI.class);
+		super(MapReduceCI.class, MapReduceCI.class);
 	}
 
 	/**
@@ -56,7 +56,7 @@ extends BCMEndPoint<MapReduceSyncCI>{
 	}
 
 	@Override
-	protected MapReduceSyncCI makeOutboundPort(AbstractComponent c, String inboundPortURI)
+	protected MapReduceCI makeOutboundPort(AbstractComponent c, String inboundPortURI)
 			throws Exception {
 		// Preconditions checking
 				assert	c != null : new PreconditionException("c != null");

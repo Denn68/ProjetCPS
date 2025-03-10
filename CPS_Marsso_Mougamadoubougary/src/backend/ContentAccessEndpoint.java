@@ -4,17 +4,17 @@ import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.AbstractPort;
 import fr.sorbonne_u.components.endpoints.BCMEndPoint;
 import fr.sorbonne_u.components.ports.AbstractInboundPort;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessCI;
 import fr.sorbonne_u.exceptions.ImplementationInvariantException;
 import fr.sorbonne_u.exceptions.InvariantException;
 import fr.sorbonne_u.exceptions.PostconditionException;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
 public class ContentAccessEndpoint 
-extends BCMEndPoint<ContentAccessSyncCI>{
+extends BCMEndPoint<ContentAccessCI>{
 
 	public ContentAccessEndpoint() {
-		super(ContentAccessSyncCI.class, ContentAccessSyncCI.class);
+		super(ContentAccessCI.class, ContentAccessCI.class);
 	}
 
 	/**
@@ -56,7 +56,7 @@ extends BCMEndPoint<ContentAccessSyncCI>{
 	}
 
 	@Override
-	protected ContentAccessSyncCI makeOutboundPort(AbstractComponent c, String inboundPortURI)
+	protected ContentAccessCI makeOutboundPort(AbstractComponent c, String inboundPortURI)
 			throws Exception {
 		// Preconditions checking
 				assert	c != null : new PreconditionException("c != null");

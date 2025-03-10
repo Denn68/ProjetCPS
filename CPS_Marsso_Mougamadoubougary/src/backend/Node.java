@@ -10,25 +10,30 @@ import java.util.stream.Stream;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
+import fr.sorbonne_u.components.endpoints.EndPointI;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.exceptions.ConnectionException;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncCI;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentKeyI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ResultReceptionCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ResultReceptionI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.CombinatorI;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceSyncCI;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceSyncI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceResultReceptionCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceResultReceptionI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ProcessorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ReductorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
 import frontend.DHTServicesEndpoint;
 
-@OfferedInterfaces(offered = { ContentAccessSyncCI.class, MapReduceSyncCI.class })
-@RequiredInterfaces(required = { ContentAccessSyncCI.class, MapReduceSyncCI.class })
+@OfferedInterfaces(offered = { ContentAccessCI.class, MapReduceCI.class})
+@RequiredInterfaces(required = { ContentAccessCI.class, MapReduceCI.class, ResultReceptionCI.class, MapReduceResultReceptionCI.class })
 public class Node 
 extends AbstractComponent
-implements ContentAccessSyncI, MapReduceSyncI{
+implements ContentAccessI, MapReduceI{
 
 	protected Node(int nbThreads, int nbSchedulableThreads, int min, int max, 
 			CompositeEndPoint compositeEndPointServer, CompositeEndPoint compositeEndPointClient) throws ConnectionException {
@@ -139,19 +144,19 @@ implements ContentAccessSyncI, MapReduceSyncI{
 			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().clearMapReduceComputation(computationUri);
 		}
 	}
-
+	
 	@Override
-	public ContentDataI getSync(String computationUri, ContentKeyI key) throws Exception {
+	public ContentDataI getSync(String computationURI, ContentKeyI key) throws Exception {
 		if(!this.compositeEndPointClient.getContentAccessEndpoint().clientSideInitialised()) {
 			this.compositeEndPointClient.getContentAccessEndpoint().initialiseClientSide(this);
 		}
 		if (this.contains(key)) {
 			return tableHachage.get(key.hashCode());
-		} else if(this.listOfUri.contains(computationUri)) {
+		} else if(this.listOfUri.contains(computationURI)) {
 			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
 		} else {
-			this.listOfUri.add(computationUri);
-			return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().getSync(computationUri, key);
+			this.listOfUri.add(computationURI);
+			return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().getSync(computationURI, key);
 		}
 	}
 
@@ -182,6 +187,91 @@ implements ContentAccessSyncI, MapReduceSyncI{
 		}else {
 			this.listOfUri.add(computationUri);
 			return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().removeSync(computationUri, key);
+		}
+	}
+
+	@Override
+	public <R extends Serializable, I extends MapReduceResultReceptionCI> void map(String computationURI,
+			SelectorI selector, ProcessorI<R> processor) throws Exception {
+		if(!this.compositeEndPointClient.getMapReduceEndpoint().clientSideInitialised()) {
+			this.compositeEndPointClient.getMapReduceEndpoint().initialiseClientSide(this);
+		}
+		if(this.listOfUri.contains(computationURI)) {
+			return;
+		}
+		this.memoryTable.put(computationURI, ((Stream<ContentDataI>) this.tableHachage.values().stream()
+		.filter(((Predicate<ContentDataI>) selector))
+		.map(processor)));
+		this.listOfUri.add(computationURI);
+		this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().map(computationURI, selector, processor);
+		
+	}
+
+	@Override
+	public <A extends Serializable, R, I extends MapReduceResultReceptionCI> void reduce(String computationURI,
+			ReductorI<A, R> reductor, CombinatorI<A> combinator, A identityAcc, A currentAcc, EndPointI<I> callerNode)
+			throws Exception {
+		if(!callerNode.clientSideInitialised()) {
+			callerNode.initialiseClientSide(this);
+		}
+		if(this.listOfUri.contains(computationURI)) {
+			return filteredMap;
+		}
+		if(!this.compositeEndPointClient.getMapReduceEndpoint().clientSideInitialised()) {
+			this.compositeEndPointClient.getMapReduceEndpoint().initialiseClientSide(this);
+		}
+		this.listOfUri.add(computationURI);
+		return combinator.apply(memoryTable.get(computationURI).reduce(filteredMap, (u,d) -> reductor.apply(u,(R) d), combinator), 
+				this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().reduceSync(computationUri, reductor, combinator, filteredMap));
+		
+	}
+
+	@Override
+	public <I extends ResultReceptionCI> void put(String computationURI, ContentKeyI key, ContentDataI data,
+			EndPointI<I> caller) throws Exception {
+		if(!caller.clientSideInitialised()) {
+			caller.initialiseClientSide(this);
+		}
+		if (this.contains(key)) {
+			caller.getClientSideReference().acceptResult(computationURI, this.tableHachage.put(key.hashCode(), data));
+		} else if(this.listOfUri.contains(computationURI)) {
+			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
+		} else{
+			this.listOfUri.add(computationURI);
+			this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().put(computationURI, key, data, caller);
+		}
+	}
+
+	@Override
+	public <I extends ResultReceptionCI> void remove(String computationURI, ContentKeyI key, EndPointI<I> caller)
+			throws Exception {
+		if(!caller.clientSideInitialised()) {
+			caller.initialiseClientSide(this);
+		}
+		if (this.contains(key)) {
+			caller.getClientSideReference().acceptResult(computationURI, this.tableHachage.remove(key.hashCode()));
+		} else if(this.listOfUri.contains(computationURI)) {
+			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
+		} else{
+			this.listOfUri.add(computationURI);
+			this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().remove(computationURI, key, caller);
+		}
+		
+	}
+
+	@Override
+	public <I extends ResultReceptionCI> void get(String computationURI, ContentKeyI key, EndPointI<I> caller) 
+			throws Exception {
+		if(!caller.clientSideInitialised()) {
+			caller.initialiseClientSide(this);
+		}
+		if (this.contains(key)) {
+			caller.getClientSideReference().acceptResult(computationURI, this.tableHachage.get(key.hashCode()));
+		} else if(this.listOfUri.contains(computationURI)) {
+			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
+		} else{
+			this.listOfUri.add(computationURI);
+			this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().get(computationURI, key, caller);
 		}
 	}
 }

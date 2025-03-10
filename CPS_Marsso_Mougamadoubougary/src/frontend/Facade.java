@@ -1,6 +1,8 @@
 package frontend;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.stream.Stream;
 
 import backend.CompositeEndPoint;
 import fr.sorbonne_u.components.AbstractComponent;
@@ -8,30 +10,37 @@ import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.exceptions.ConnectionException;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessSyncCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentKeyI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ResultReceptionCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ResultReceptionI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.frontend.DHTServicesCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.frontend.DHTServicesI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.CombinatorI;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceSyncCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceResultReceptionCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceResultReceptionI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ProcessorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ReductorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
 import fr.sorbonne_u.cps.mapreduce.utils.URIGenerator;
 
-@OfferedInterfaces(offered = { DHTServicesCI.class })
-@RequiredInterfaces(required = { ContentAccessSyncCI.class, MapReduceSyncCI.class })
+@OfferedInterfaces(offered = { DHTServicesCI.class, MapReduceResultReceptionCI.class, ResultReceptionCI.class })
+@RequiredInterfaces(required = { ContentAccessCI.class, MapReduceCI.class })
 public class Facade
 extends AbstractComponent
-implements DHTServicesI{
+implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 
 	protected Facade(int nbThreads, int nbSchedulableThreads, 
 			DHTServicesEndpoint dhtEndPointServer, CompositeEndPoint compositeEndPointClient) throws ConnectionException {
 		super(nbThreads, nbSchedulableThreads);
 		dhtEndPointServer.initialiseServerSide(this);
 		this.compositeEndPointClient = compositeEndPointClient;
+		this.memoryTable = new HashMap<>();
 	}
+	
+	private HashMap<String, Serializable> memoryTable;
 	
 	@Override
 	public void start() {
@@ -97,6 +106,17 @@ implements DHTServicesI{
 		String uri = URIGenerator.generateURI("remove");
 		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation(uri);
 		return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().removeSync(uri, key);
+	}
+
+	@Override
+	public void acceptResult(String computationURI, Serializable result) throws Exception {
+		this.memoryTable.put(computationURI, result);
+	}
+
+	@Override
+	public void acceptResult(String computationURI, String emitterId, Serializable acc) throws Exception {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
