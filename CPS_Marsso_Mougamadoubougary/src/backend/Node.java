@@ -237,8 +237,14 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI{
 	                	this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().reduce(computationURI, reductor, combinator, identityAcc, currentAcc, caller);
 	                	
 	                	// On attend le résultat du reduce du noeud suivant
+	                	System.out.println(computationURI);
+	                	if (reduceCompletion.get(computationURI) != null) {
+	                		caller.getClientSideReference().acceptResult(computationURI, this.id, res1);
+	                	}
+	                	//
+	                	
 	                	CompletableFuture<Serializable> future = new CompletableFuture<>();
-	                	reduceCompletion.put(this.id + computationURI, future);
+	                	reduceCompletion.put(computationURI, future);
 	                	
 	                	A res2 = (A) future.get();
 	                	
@@ -248,7 +254,9 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI{
 	                	caller.getClientSideReference().acceptResult(computationURI, this.id, 
 	                			combinator.apply(res1, res2));
 	                	
+	                	
 	                } else {
+	                	System.out.println("Je suis la");
 	                	caller.getClientSideReference().acceptResult(computationURI, this.id, currentAcc);
 	                }
 	            } catch (Exception e) {
@@ -309,13 +317,11 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI{
 @Override
 public void acceptResult(String computationURI, String emitterId, Serializable acc) throws Exception {
 	synchronized (this.reduceCompletion) {
-        if (this.reduceCompletion.containsKey(this.id + computationURI) && this.reduceCompletion.get(this.id + computationURI) instanceof CompletableFuture) {
-        	System.out.println("JE SUIS LA");
-            CompletableFuture<Serializable> future = (CompletableFuture<Serializable>) this.reduceCompletion.remove(this.id + computationURI);
+        if (this.reduceCompletion.containsKey(computationURI) && this.reduceCompletion.get(computationURI) instanceof CompletableFuture) {
+            CompletableFuture<Serializable> future = (CompletableFuture<Serializable>) this.reduceCompletion.remove(computationURI);
             future.complete(acc);
         } 
         else {
-        	System.out.println("JE SUIS LA 2");
         	System.out.println("L'uri n'existe pas");
         }
 	}
