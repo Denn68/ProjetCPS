@@ -154,6 +154,7 @@ extends AbstractComponent
         					(a1, a2) -> a1 + a2,
         					10);
         			
+        			System.out.println("MapReduce" + res);
         			assert res == 356 : "MapReduce incorrect";
         			System.out.println("No problem");
                 } catch (Exception e) {
