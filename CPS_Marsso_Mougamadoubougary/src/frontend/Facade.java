@@ -50,7 +50,6 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 		this.mapMemoryTable = new HashMap<>();
 	}
 	
-	private final ConcurrentHashMap<String, CompletableFuture<ContentDataI>> pendingRequests = new ConcurrentHashMap<>();
 	private HashMap<String, CompletableFuture<Serializable>> contentMemoryTable;
 	private HashMap<String, CompletableFuture<Serializable>> mapMemoryTable;
 	private ResultReceptionEndpoint contentResultEndPointServer;
@@ -116,8 +115,21 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 			ReductorI<A, R> reductor, CombinatorI<A> combinator, A identity) throws Exception {
 			String uri = URIGenerator.generateURI("mapreduce");
 			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().clearMapReduceComputation(uri);
-			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().mapSync(uri, selector, processor);
-			return this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().reduceSync(uri, reductor, combinator, identity);
+			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().map(uri, selector, processor);
+			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().reduce(uri, reductor, combinator, identity, identity, this.mapReduceResultEndPointServer);
+			
+			CompletableFuture<Serializable> future = new CompletableFuture<>();
+
+		    synchronized (this.mapMemoryTable) {
+		        this.mapMemoryTable.put(uri, future);
+		    }
+
+	        try {
+	            return (A) future.get(); 
+	        } catch (InterruptedException | ExecutionException e) {
+	            e.printStackTrace();
+	            return null; 
+	        }
 	}
 
 	@Override
@@ -176,7 +188,15 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 
 	@Override
 	public void acceptResult(String computationURI, String emitterId, Serializable acc) throws Exception {
-		// TODO Auto-generated method stub
+		synchronized (this.mapMemoryTable) {
+	        if (this.mapMemoryTable.containsKey(computationURI) && this.mapMemoryTable.get(computationURI) instanceof CompletableFuture) {
+	            CompletableFuture<Serializable> future = (CompletableFuture<Serializable>) this.mapMemoryTable.remove(computationURI);
+	            future.complete(acc);
+	        } 
+	        else {
+	        	System.out.println("L'uri n'existe pas");
+	        }
+		}
 		
 	}
 
