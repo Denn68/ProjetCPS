@@ -27,6 +27,7 @@ import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceResultRecep
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ProcessorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ReductorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
+import fr.sorbonne_u.cps.mapreduce.utils.URIGenerator;
 import frontend.DHTServicesEndpoint;
 
 @OfferedInterfaces(offered = { ContentAccessCI.class, MapReduceCI.class})
@@ -53,6 +54,7 @@ implements ContentAccessI, MapReduceI{
 	private int intervalMax;
 	private List<String> listOfUri;
 	private CompositeEndPoint compositeEndPointClient;
+	private String id;
 	
 	public boolean contains(ContentKeyI arg0) {
 		if(arg0.hashCode() >= intervalMin && arg0.hashCode() <= intervalMax) {
@@ -92,6 +94,8 @@ implements ContentAccessI, MapReduceI{
 				e.printStackTrace();
 			}
 		}
+		
+		id = URIGenerator.generateURI();
 	}
 
 	@Override
@@ -209,20 +213,18 @@ implements ContentAccessI, MapReduceI{
 
 	@Override
 	public <A extends Serializable, R, I extends MapReduceResultReceptionCI> void reduce(String computationURI,
-			ReductorI<A, R> reductor, CombinatorI<A> combinator, A identityAcc, A currentAcc, EndPointI<I> callerNode)
+			ReductorI<A, R> reductor, CombinatorI<A> combinator, A identityAcc, A currentAcc, EndPointI<I> caller)
 			throws Exception {
-		if(!callerNode.clientSideInitialised()) {
-			callerNode.initialiseClientSide(this);
+		if(!caller.clientSideInitialised()) {
+			caller.initialiseClientSide(this);
 		}
 		if(this.listOfUri.contains(computationURI)) {
-			return filteredMap;
-		}
-		if(!this.compositeEndPointClient.getMapReduceEndpoint().clientSideInitialised()) {
-			this.compositeEndPointClient.getMapReduceEndpoint().initialiseClientSide(this);
-		}
+			caller.getClientSideReference().acceptResult(computationURI, this.id, currentAcc);
+		}/*
 		this.listOfUri.add(computationURI);
-		return combinator.apply(memoryTable.get(computationURI).reduce(filteredMap, (u,d) -> reductor.apply(u,(R) d), combinator), 
-				this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().reduceSync(computationUri, reductor, combinator, filteredMap));
+		combinator.apply(memoryTable.get(computationURI).reduce(currentAcc, (u,d) -> reductor.apply(u,(R) d), combinator), 
+				this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().reduce(computationURI, reductor, combinator, identityAcc, currentAcc, caller));
+				*/
 		
 	}
 
@@ -234,6 +236,7 @@ implements ContentAccessI, MapReduceI{
 		}
 		if (this.contains(key)) {
 			caller.getClientSideReference().acceptResult(computationURI, this.tableHachage.put(key.hashCode(), data));
+			caller.cleanUpClientSide();
 		} else if(this.listOfUri.contains(computationURI)) {
 			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
 		} else{
@@ -262,7 +265,9 @@ implements ContentAccessI, MapReduceI{
 	@Override
 	public <I extends ResultReceptionCI> void get(String computationURI, ContentKeyI key, EndPointI<I> caller) 
 			throws Exception {
+		System.out.println("TEST");
 		if(!caller.clientSideInitialised()) {
+			System.out.println("TEST1");
 			caller.initialiseClientSide(this);
 		}
 		if (this.contains(key)) {

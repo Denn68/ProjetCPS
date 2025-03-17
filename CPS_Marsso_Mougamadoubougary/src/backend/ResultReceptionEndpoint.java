@@ -30,8 +30,8 @@ extends BCMEndPoint<ResultReceptionCI>{
 				new PreconditionException(
 						"inboundPortURI != null && !inboundPortURI.isEmpty()");
 
-		ContentAccessInboundPort p =
-				new ContentAccessInboundPort(this.inboundPortURI, c);
+		ResultReceptionInboundPort p =
+				new ResultReceptionInboundPort(this.inboundPortURI, c);
 		p.publishPort();
 
 		// Postconditions checking
@@ -48,9 +48,9 @@ extends BCMEndPoint<ResultReceptionCI>{
 		// Invariant checking
 		assert	ResultReceptionEndpoint.implementationInvariants(this) :
 				new ImplementationInvariantException(
-						"ContentAccessEndpoint.implementationInvariants(this)");
+						"ResultReceptionCI.implementationInvariants(this)");
 		assert	ResultReceptionEndpoint.invariants(this) :
-				new InvariantException("ContentAccessEndpoint.invariants(this)");
+				new InvariantException("ResultReceptionCI.invariants(this)");
 		
 		return p;
 	}
@@ -67,7 +67,7 @@ extends BCMEndPoint<ResultReceptionCI>{
 				c.doPortConnection(
 						p.getPortURI(),
 						this.inboundPortURI,
-						ContentAccessConnector.class.getCanonicalName());
+						ResultReceptionConnector.class.getCanonicalName());
 
 				// Postconditions checking
 				assert	p != null && p.isPublished() && p.connected() :

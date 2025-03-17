@@ -30,8 +30,8 @@ extends BCMEndPoint<MapReduceResultReceptionCI>{
 				new PreconditionException(
 						"inboundPortURI != null && !inboundPortURI.isEmpty()");
 
-		MapReduceInboundPort p =
-				new MapReduceInboundPort(this.inboundPortURI, c);
+		MapReduceResultReceptionInboundPort p =
+				new MapReduceResultReceptionInboundPort(this.inboundPortURI, c);
 		p.publishPort();
 
 		// Postconditions checking
@@ -48,9 +48,9 @@ extends BCMEndPoint<MapReduceResultReceptionCI>{
 		// Invariant checking
 		assert	MapReduceResultReceptionEndpoint.implementationInvariants(this) :
 				new ImplementationInvariantException(
-						"DHTEndpoint.implementationInvariants(this)");
+						"MapReduceResultReceptionCI.implementationInvariants(this)");
 		assert	MapReduceResultReceptionEndpoint.invariants(this) :
-				new InvariantException("DHTEndpoint.invariants(this)");
+				new InvariantException("MapReduceResultReceptionCI.invariants(this)");
 		
 		return p;
 	}
@@ -67,7 +67,7 @@ extends BCMEndPoint<MapReduceResultReceptionCI>{
 				c.doPortConnection(
 						p.getPortURI(),
 						this.inboundPortURI,
-						MapReduceConnector.class.getCanonicalName());
+						MapReduceResultReceptionConnector.class.getCanonicalName());
 
 				// Postconditions checking
 				assert	p != null && p.isPublished() && p.connected() :

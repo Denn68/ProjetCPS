@@ -2,12 +2,22 @@ package frontend;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
 import backend.CompositeEndPoint;
+import backend.CompositeResultReceptionEndPoint;
+import backend.MapReduceResultReceptionEndpoint;
+import backend.ResultReceptionEndpoint;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
+import fr.sorbonne_u.components.endpoints.EndPointI;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.exceptions.ConnectionException;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessCI;
@@ -33,14 +43,23 @@ extends AbstractComponent
 implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 
 	protected Facade(int nbThreads, int nbSchedulableThreads, 
-			DHTServicesEndpoint dhtEndPointServer, CompositeEndPoint compositeEndPointClient) throws ConnectionException {
+			DHTServicesEndpoint dhtEndPointServer, CompositeEndPoint compositeEndPointClient,
+			ResultReceptionEndpoint contentResultEndPointServer, MapReduceResultReceptionEndpoint mapReduceResultEndPointServer) throws ConnectionException {
 		super(nbThreads, nbSchedulableThreads);
 		dhtEndPointServer.initialiseServerSide(this);
+		contentResultEndPointServer.initialiseServerSide(this);
+		mapReduceResultEndPointServer.initialiseServerSide(this);
+		this.contentResultEndPointServer = contentResultEndPointServer;
+		this.mapReduceResultEndPointServer = mapReduceResultEndPointServer;
 		this.compositeEndPointClient = compositeEndPointClient;
-		this.memoryTable = new HashMap<>();
+		this.contentMemoryTable = new HashMap<>();
+		this.mapMemoryTable = new HashMap<>();
 	}
 	
-	private HashMap<String, Serializable> memoryTable;
+	private HashMap<String, Serializable> contentMemoryTable;
+	private HashMap<String, Serializable> mapMemoryTable;
+	private ResultReceptionEndpoint contentResultEndPointServer;
+	private MapReduceResultReceptionEndpoint mapReduceResultEndPointServer;
 	
 	@Override
 	public void start() {
@@ -81,7 +100,27 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 	public ContentDataI get(ContentKeyI key) throws Exception {
 		String uri = URIGenerator.generateURI("get");
 		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation(uri);
-		return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().getSync(uri, key);
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().get(uri, key, ((EndPointI<ResultReceptionCI>) this.contentResultEndPointServer));
+        CompletableFuture<ContentDataI> future = CompletableFuture.supplyAsync(() -> {
+            try {
+                while (this.contentMemoryTable.get(uri) == null) {
+                    Thread.sleep(1000); 
+                    System.out.println("Résultat pas dispo" + uri);
+                }
+                
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt(); 
+                throw new RuntimeException(e);
+            }
+            return (ContentDataI) this.contentMemoryTable.get(uri);
+        });
+
+        try {
+            return future.get(); 
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            return null; 
+        }
 	}
 
 	@Override
@@ -90,7 +129,6 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 			String uri = URIGenerator.generateURI("mapreduce");
 			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().clearMapReduceComputation(uri);
 			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().mapSync(uri, selector, processor);
-			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().clearMapReduceComputation(uri);
 			return this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().reduceSync(uri, reductor, combinator, identity);
 	}
 
@@ -110,7 +148,9 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 
 	@Override
 	public void acceptResult(String computationURI, Serializable result) throws Exception {
-		this.memoryTable.put(computationURI, result);
+		System.out.println("Je suis la " + computationURI);
+		System.out.println(result);
+		this.contentMemoryTable.put(computationURI, result);
 	}
 
 	@Override
