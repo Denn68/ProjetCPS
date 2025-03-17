@@ -2,16 +2,10 @@ package frontend;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.stream.Stream;
-
 import backend.CompositeEndPoint;
-import backend.CompositeResultReceptionEndPoint;
 import backend.MapReduceResultReceptionEndpoint;
 import backend.ResultReceptionEndpoint;
 import fr.sorbonne_u.components.AbstractComponent;
@@ -56,8 +50,9 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 		this.mapMemoryTable = new HashMap<>();
 	}
 	
-	private HashMap<String, Serializable> contentMemoryTable;
-	private HashMap<String, Serializable> mapMemoryTable;
+	private final ConcurrentHashMap<String, CompletableFuture<ContentDataI>> pendingRequests = new ConcurrentHashMap<>();
+	private HashMap<String, CompletableFuture<Serializable>> contentMemoryTable;
+	private HashMap<String, CompletableFuture<Serializable>> mapMemoryTable;
 	private ResultReceptionEndpoint contentResultEndPointServer;
 	private MapReduceResultReceptionEndpoint mapReduceResultEndPointServer;
 	
@@ -101,22 +96,15 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 		String uri = URIGenerator.generateURI("get");
 		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation(uri);
 		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().get(uri, key, ((EndPointI<ResultReceptionCI>) this.contentResultEndPointServer));
-        CompletableFuture<ContentDataI> future = CompletableFuture.supplyAsync(() -> {
-            try {
-                while (this.contentMemoryTable.get(uri) == null) {
-                    Thread.sleep(1000); 
-                    System.out.println("Résultat pas dispo" + uri);
-                }
-                
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt(); 
-                throw new RuntimeException(e);
-            }
-            return (ContentDataI) this.contentMemoryTable.get(uri);
-        });
+		
+		CompletableFuture<Serializable> future = new CompletableFuture<>();
+
+	    synchronized (this.contentMemoryTable) {
+	        this.contentMemoryTable.put(uri, future);
+	    }
 
         try {
-            return future.get(); 
+            return (ContentDataI) future.get(); 
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
             return null; 
@@ -136,21 +124,54 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 	public ContentDataI put(ContentKeyI key, ContentDataI data) throws Exception {
 		String uri = URIGenerator.generateURI("put");
 		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation(uri);
-		return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().putSync(uri, key, data); 
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().put(uri, key, data, ((EndPointI<ResultReceptionCI>) this.contentResultEndPointServer));
+		
+
+	    CompletableFuture<Serializable> future = new CompletableFuture<>();
+
+	    synchronized (this.contentMemoryTable) {
+	        this.contentMemoryTable.put(uri, future);
+	    }
+
+        try {
+            return (ContentDataI) future.get(); 
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            return null; 
+        }
 	}
 
 	@Override
 	public ContentDataI remove(ContentKeyI key) throws Exception {
 		String uri = URIGenerator.generateURI("remove");
 		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation(uri);
-		return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().removeSync(uri, key);
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().remove(uri, key, ((EndPointI<ResultReceptionCI>) this.contentResultEndPointServer));
+		
+		CompletableFuture<Serializable> future = new CompletableFuture<>();
+
+	    synchronized (this.contentMemoryTable) {
+	        this.contentMemoryTable.put(uri, future);
+	    }
+
+        try {
+            return (ContentDataI) future.get(); 
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            return null; 
+        }
 	}
 
 	@Override
 	public void acceptResult(String computationURI, Serializable result) throws Exception {
-		System.out.println("Je suis la " + computationURI);
-		System.out.println(result);
-		this.contentMemoryTable.put(computationURI, result);
+		synchronized (this.contentMemoryTable) {
+	        if (this.contentMemoryTable.containsKey(computationURI) && this.contentMemoryTable.get(computationURI) instanceof CompletableFuture) {
+	            CompletableFuture<Serializable> future = (CompletableFuture<Serializable>) this.contentMemoryTable.remove(computationURI);
+	            future.complete((ContentDataI) result);
+	        } 
+	        else {
+	        	System.out.println("L'uri n'existe pas");
+	        }
+		}
 	}
 
 	@Override

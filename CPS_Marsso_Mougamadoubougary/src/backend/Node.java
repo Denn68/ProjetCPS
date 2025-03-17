@@ -265,9 +265,7 @@ implements ContentAccessI, MapReduceI{
 	@Override
 	public <I extends ResultReceptionCI> void get(String computationURI, ContentKeyI key, EndPointI<I> caller) 
 			throws Exception {
-		System.out.println("TEST");
 		if(!caller.clientSideInitialised()) {
-			System.out.println("TEST1");
 			caller.initialiseClientSide(this);
 		}
 		if (this.contains(key)) {
