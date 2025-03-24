@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import fr.sorbonne_u.components.ComponentI;
 import fr.sorbonne_u.components.endpoints.EndPointI;
+import fr.sorbonne_u.components.interfaces.OfferedCI;
 import fr.sorbonne_u.components.ports.AbstractInboundPort;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.CombinatorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceCI;
@@ -20,6 +21,15 @@ implements MapReduceCI{
 	public MapReduceInboundPort(String uri, ComponentI owner) throws Exception {
 		super(uri, MapReduceCI.class, owner);
 	}
+	
+	protected			MapReduceInboundPort(
+			String uri,
+			Class<? extends OfferedCI> implementedInterface,
+			ComponentI owner
+			) throws Exception
+		{
+			super(uri, implementedInterface, owner);
+		}
 
 	private static final long serialVersionUID = 1L;
 

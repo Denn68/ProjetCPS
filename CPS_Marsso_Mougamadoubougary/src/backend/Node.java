@@ -238,17 +238,8 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI{
 	                		caller.getClientSideReference().acceptResult(computationURI, this.id, currentAcc);
 	                	}
 	                	
-	                	// On attend le résultat du reduce du noeud suivant
-	                	System.out.println(computationURI);
-	                	if (reduceCompletion.get(computationURI) != null) {
-	                		caller.getClientSideReference().acceptResult(computationURI, this.id, res1);
-	                	}
-	                	//
-	                	
 	                	CompletableFuture<Serializable> future = new CompletableFuture<>();
 	                	reduceCompletion.put(computationURI, future);
-	                	
-	                	
 	                	
 	                	A res2 = (A) future.get();
 	                	
