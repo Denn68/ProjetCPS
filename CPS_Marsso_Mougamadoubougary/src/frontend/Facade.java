@@ -3,7 +3,6 @@ package frontend;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import backend.CompositeEndPoint;
 import backend.MapReduceResultReceptionEndpoint;
@@ -93,15 +92,17 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 	@Override
 	public ContentDataI get(ContentKeyI key) throws Exception {
 		String uri = URIGenerator.generateURI("get");
-		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation(uri);
-		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().get(uri, key, ((EndPointI<ResultReceptionCI>) this.contentResultEndPointServer));
 		
 		CompletableFuture<Serializable> future = new CompletableFuture<>();
 
 	    synchronized (this.contentMemoryTable) {
 	        this.contentMemoryTable.put(uri, future);
 	    }
-
+	    
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation(uri);
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().get(uri, key, ((EndPointI<ResultReceptionCI>) this.contentResultEndPointServer));
+		
+		
         try {
             return (ContentDataI) future.get(); 
         } catch (InterruptedException | ExecutionException e) {
@@ -110,19 +111,23 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
         }
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <R extends Serializable, A extends Serializable> A mapReduce(SelectorI selector, ProcessorI<R> processor,
 			ReductorI<A, R> reductor, CombinatorI<A> combinator, A identity) throws Exception {
 			String uri = URIGenerator.generateURI("mapreduce");
-			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().clearMapReduceComputation(uri);
-			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().map(uri, selector, processor);
-			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().reduce(uri, reductor, combinator, identity, identity, this.mapReduceResultEndPointServer);
 			
 			CompletableFuture<Serializable> future = new CompletableFuture<>();
 
 		    synchronized (this.mapMemoryTable) {
 		        this.mapMemoryTable.put(uri, future);
 		    }
+		    
+			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().clearMapReduceComputation(uri);
+			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().map(uri, selector, processor);
+			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().reduce(uri, reductor, combinator, identity, identity, this.mapReduceResultEndPointServer);
+			
+			
 
 	        try {
 	            return (A) future.get(); 
@@ -135,15 +140,18 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 	@Override
 	public ContentDataI put(ContentKeyI key, ContentDataI data) throws Exception {
 		String uri = URIGenerator.generateURI("put");
-		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation(uri);
-		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().put(uri, key, data, ((EndPointI<ResultReceptionCI>) this.contentResultEndPointServer));
 		
-
-	    CompletableFuture<Serializable> future = new CompletableFuture<>();
+		CompletableFuture<Serializable> future = new CompletableFuture<>();
 
 	    synchronized (this.contentMemoryTable) {
 	        this.contentMemoryTable.put(uri, future);
 	    }
+	    
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation(uri);
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().put(uri, key, data, ((EndPointI<ResultReceptionCI>) this.contentResultEndPointServer));
+		
+
+	    
 
         try {
             return (ContentDataI) future.get(); 
@@ -156,8 +164,6 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 	@Override
 	public ContentDataI remove(ContentKeyI key) throws Exception {
 		String uri = URIGenerator.generateURI("remove");
-		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation(uri);
-		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().remove(uri, key, ((EndPointI<ResultReceptionCI>) this.contentResultEndPointServer));
 		
 		CompletableFuture<Serializable> future = new CompletableFuture<>();
 
@@ -165,6 +171,11 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 	        this.contentMemoryTable.put(uri, future);
 	    }
 
+	    
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation(uri);
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().remove(uri, key, ((EndPointI<ResultReceptionCI>) this.contentResultEndPointServer));
+		
+		
         try {
             return (ContentDataI) future.get(); 
         } catch (InterruptedException | ExecutionException e) {

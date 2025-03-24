@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -21,7 +20,6 @@ import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentKeyI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ResultReceptionCI;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ResultReceptionI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.CombinatorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceCI;
@@ -31,7 +29,6 @@ import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ProcessorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ReductorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
 import fr.sorbonne_u.cps.mapreduce.utils.URIGenerator;
-import frontend.DHTServicesEndpoint;
 
 @OfferedInterfaces(offered = { ContentAccessCI.class, MapReduceCI.class, MapReduceResultReceptionCI.class})
 @RequiredInterfaces(required = { ContentAccessCI.class, MapReduceCI.class, ResultReceptionCI.class, MapReduceResultReceptionCI.class })
@@ -195,28 +192,29 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI{
 			return this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().removeSync(computationUri, key);
 		}
 	}
-
+	
 	@Override
-	public <R extends Serializable, I extends MapReduceResultReceptionCI> void map(String computationURI,
-			SelectorI selector, ProcessorI<R> processor) throws Exception {
-	    clearCompletion.getOrDefault(computationURI, CompletableFuture.completedFuture(null))
-	        .thenRun(() -> {
-	            try {
-	            	System.out.println("Map peut commencer");
-	                if (this.listOfMapReduceUri.contains(computationURI)) {
-	                    return;
-	                }
-	                this.listOfMapReduceUri.add(computationURI);
-	                this.memoryTable.put(computationURI, ((Stream<ContentDataI>) this.tableHachage.values().stream()
-	                        .filter(((Predicate<ContentDataI>) selector))
-	                        .map(processor)));
-	                CompletableFuture<Void> future = CompletableFuture.completedFuture(null);
-	                mapCompletion.put(this.id + computationURI, future);
-	                this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().map(computationURI, selector, processor);
-	            } catch (Exception e) {
-	                throw new RuntimeException("Erreur dans map()", e);
-	            }
-	        });
+	public <R extends Serializable> void map(String computationURI, SelectorI selector, ProcessorI<R> processor)
+			throws Exception {
+		clearCompletion.getOrDefault(computationURI, CompletableFuture.completedFuture(null))
+        .thenRun(() -> {
+            try {
+                if (this.listOfMapReduceUri.contains(computationURI)) {
+                    return;
+                }
+                this.listOfMapReduceUri.add(computationURI);
+                
+                this.memoryTable.put(computationURI, ((Stream<ContentDataI>) this.tableHachage.values().stream()
+                        .filter(((Predicate<ContentDataI>) selector))
+                        .map(processor)));
+                
+                CompletableFuture<Void> future = CompletableFuture.completedFuture(null);
+                mapCompletion.put(this.id + computationURI, future);
+                this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().map(computationURI, selector, processor);
+            } catch (Exception e) {
+                throw new RuntimeException("Erreur dans map()", e);
+            }
+        });
 	}
 
 	@Override
@@ -225,7 +223,6 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI{
 			throws Exception {
 	    mapCompletion.getOrDefault(this.id + computationURI, CompletableFuture.completedFuture(null))
 	        .thenRun(() -> {
-	        	System.out.println("Reduce peut maintenant commencer");
 	            try {
 	                if (!caller.clientSideInitialised()) {
 	                    caller.initialiseClientSide(this);
@@ -234,7 +231,12 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI{
 	                	this.listOfMapReduceUri.remove(computationURI);
 	                	// On applique le reduce
 	                	A res1 = memoryTable.get(computationURI).reduce(currentAcc, (u,d) -> reductor.apply(u,(R) d), combinator);
-	                	this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().reduce(computationURI, reductor, combinator, identityAcc, currentAcc, caller);
+	                	this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().reduce(computationURI, reductor, combinator, identityAcc, currentAcc, this.mapResultEndPoint);
+	                	
+	                	// On libere le noeud précedent
+	                	if (caller instanceof Node) {
+	                		caller.getClientSideReference().acceptResult(computationURI, this.id, currentAcc);
+	                	}
 	                	
 	                	// On attend le résultat du reduce du noeud suivant
 	                	System.out.println(computationURI);
@@ -246,18 +248,22 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI{
 	                	CompletableFuture<Serializable> future = new CompletableFuture<>();
 	                	reduceCompletion.put(computationURI, future);
 	                	
+	                	
+	                	
 	                	A res2 = (A) future.get();
 	                	
 	                	// On combine et on envoie le résultat
 	                	
-	                	System.out.printf("Resultat %d", combinator.apply(res1, res2));
 	                	caller.getClientSideReference().acceptResult(computationURI, this.id, 
 	                			combinator.apply(res1, res2));
+
+	                    caller.cleanUpClientSide();
 	                	
 	                	
 	                } else {
 	                	System.out.println("Je suis la");
 	                	caller.getClientSideReference().acceptResult(computationURI, this.id, currentAcc);
+	                    caller.cleanUpClientSide();
 	                }
 	            } catch (Exception e) {
 	                throw new RuntimeException("Erreur dans reduce()", e);
@@ -290,6 +296,7 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI{
 		}
 		if (this.contains(key)) {
 			caller.getClientSideReference().acceptResult(computationURI, this.tableHachage.remove(key.hashCode()));
+			caller.cleanUpClientSide();
 		} else if(this.listOfUri.contains(computationURI)) {
 			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
 		} else{
@@ -307,6 +314,7 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI{
 		}
 		if (this.contains(key)) {
 			caller.getClientSideReference().acceptResult(computationURI, this.tableHachage.get(key.hashCode()));
+			caller.cleanUpClientSide();
 		} else if(this.listOfUri.contains(computationURI)) {
 			throw new IllegalArgumentException("La clé n'est pas dans l'intervalle de la table");
 		} else{
@@ -314,16 +322,14 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI{
 			this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().get(computationURI, key, caller);
 		}
 	}
-@Override
-public void acceptResult(String computationURI, String emitterId, Serializable acc) throws Exception {
-	synchronized (this.reduceCompletion) {
-        if (this.reduceCompletion.containsKey(computationURI) && this.reduceCompletion.get(computationURI) instanceof CompletableFuture) {
-            CompletableFuture<Serializable> future = (CompletableFuture<Serializable>) this.reduceCompletion.remove(computationURI);
-            future.complete(acc);
-        } 
-        else {
-        	System.out.println("L'uri n'existe pas");
-        }
+	
+	@Override
+	public void acceptResult(String computationURI, String emitterId, Serializable acc) throws Exception {
+		synchronized (this.reduceCompletion) {
+		    CompletableFuture<Serializable> future = (CompletableFuture<Serializable>) this.reduceCompletion.remove(computationURI);
+		    future.complete(acc);
+		}
 	}
-}
+
+	
 }

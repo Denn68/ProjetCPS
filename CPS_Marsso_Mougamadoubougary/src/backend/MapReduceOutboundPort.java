@@ -42,8 +42,8 @@ implements MapReduceCI{
 	}
 
 	@Override
-	public <R extends Serializable, I extends MapReduceResultReceptionCI> void map(String computationURI,
-			SelectorI selector, ProcessorI<R> processor) throws Exception {
+	public <R extends Serializable> void map(String computationURI, SelectorI selector, ProcessorI<R> processor)
+			throws Exception {
 		((MapReduceCI) this.getConnector()).map(computationURI, selector, processor);
 		
 	}
@@ -55,5 +55,7 @@ implements MapReduceCI{
 		((MapReduceCI) this.getConnector()).reduce(computationURI, reductor, combinator, identityAcc, currentAcc, callerNode);
 		
 	}
+
+	
 
 }

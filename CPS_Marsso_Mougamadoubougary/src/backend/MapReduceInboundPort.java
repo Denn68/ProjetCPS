@@ -7,6 +7,7 @@ import fr.sorbonne_u.components.endpoints.EndPointI;
 import fr.sorbonne_u.components.ports.AbstractInboundPort;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.CombinatorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceResultReceptionCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ProcessorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ReductorI;
@@ -25,34 +26,33 @@ implements MapReduceCI{
 	@Override
 	public <R extends Serializable> void mapSync(String computationURI, SelectorI selector, ProcessorI<R> processor)
 			throws Exception {
-		this.getOwner().handleRequest(owner -> {((Node)owner).mapSync(computationURI, selector, processor); return null;});
+		this.getOwner().handleRequest(owner -> {((MapReduceI)owner).mapSync(computationURI, selector, processor); return null;});
 		
 	}
 
 	@Override
 	public <A extends Serializable, R> A reduceSync(String computationURI, ReductorI<A, R> reductor,
 			CombinatorI<A> combinator, A currentAcc) throws Exception {
-		return this.getOwner().handleRequest(owner -> ((Node)owner).reduceSync(computationURI, reductor, combinator, currentAcc));
+		return this.getOwner().handleRequest(owner -> ((MapReduceI)owner).reduceSync(computationURI, reductor, combinator, currentAcc));
 	}
 
 	@Override
 	public void clearMapReduceComputation(String computationURI) throws Exception {
-		this.getOwner().handleRequest(owner -> {((Node)owner).clearMapReduceComputation(computationURI); return null;});
+		this.getOwner().handleRequest(owner -> {((MapReduceI)owner).clearMapReduceComputation(computationURI); return null;});
 		
 	}
 
 	@Override
-	public <R extends Serializable, I extends MapReduceResultReceptionCI> void map(String computationURI,
-			SelectorI selector, ProcessorI<R> processor) throws Exception {
+	public <R extends Serializable> void map(String computationURI, SelectorI selector, ProcessorI<R> processor)
+			throws Exception {
 		this.getOwner().runTask(owner -> {
 			try {
-				((Node)owner).map(computationURI, selector, processor);
+				((MapReduceI)owner).map(computationURI, selector, processor);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		});
-		
+		});	
 	}
 
 	@Override
@@ -61,7 +61,7 @@ implements MapReduceCI{
 			throws Exception {
 		this.getOwner().runTask(owner -> {
 			try {
-				((Node)owner).reduce(computationURI, reductor, combinator, identityAcc, currentAcc, callerNode);
+				((MapReduceI)owner).reduce(computationURI, reductor, combinator, identityAcc, currentAcc, callerNode);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -69,5 +69,7 @@ implements MapReduceCI{
 		});
 		
 	}
+
+	
 
 }

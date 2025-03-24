@@ -100,10 +100,6 @@ extends AbstractComponent
             		int P6_age = 18;
             		ContentKey key6 = new ContentKey(3800);
             		Personne data6 = new Personne(P6_nom, P6_age);
-            		
-            		//System.out.println(((Client) this.getTaskOwner()).put(key1, data1));
-                    //System.out.println(((Client) this.getTaskOwner()).get(key1).getValue(attNOM));
-                    //System.out.println(((Client) this.getTaskOwner()).get(key1).getValue(attAGE));
         			
         			ContentDataI oldPerson1 = ((Client) this.getTaskOwner()).put(key1, data1);
         			System.out.println(((Client) this.getTaskOwner()).get(key1).getValue(attNOM));
@@ -154,7 +150,7 @@ extends AbstractComponent
         					(a1, a2) -> a1 + a2,
         					10);
         			
-        			System.out.println("MapReduce " + res + "\n");
+        			System.out.println("MapReduce : " + res);
         			assert res == 356 : "MapReduce incorrect";
         			System.out.println("No problem");
                 } catch (Exception e) {
