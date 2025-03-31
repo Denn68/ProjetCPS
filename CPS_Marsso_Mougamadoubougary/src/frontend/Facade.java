@@ -105,7 +105,7 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 		
 		CompletableFuture<Serializable> future = new CompletableFuture<>();
 
-	    synchronized (this.contentMemoryTable) {
+	    synchronized (this.contentMemoryTable) { // Utiliser concurrent Hash Map
 	        this.contentMemoryTable.put(uri, future);
 	    }
 	    
@@ -133,14 +133,13 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 		        this.mapMemoryTable.put(uri, future);
 		    }
 		    
-			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().clearMapReduceComputation(uri);
 			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().map(uri, selector, processor);
 			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().reduce(uri, reductor, combinator, identity, identity, this.mapReduceResultEndPointServer);
-			
-			
 
 	        try {
-	            return (A) future.get(); 
+	        	A res = (A) future.get();
+	        	this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().clearMapReduceComputation(uri);
+	            return res; 
 	        } catch (InterruptedException | ExecutionException e) {
 	            e.printStackTrace();
 	            return null; 
@@ -160,9 +159,6 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation(uri);
 		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().put(uri, key, data, ((EndPointI<ResultReceptionCI>) this.contentResultEndPointServer));
 		
-
-	    
-
         try {
             return (ContentDataI) future.get(); 
         } catch (InterruptedException | ExecutionException e) {
@@ -181,7 +177,6 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 	        this.contentMemoryTable.put(uri, future);
 	    }
 
-	    
 		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation(uri);
 		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().remove(uri, key, ((EndPointI<ResultReceptionCI>) this.contentResultEndPointServer));
 		

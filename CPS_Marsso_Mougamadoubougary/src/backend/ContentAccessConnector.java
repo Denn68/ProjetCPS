@@ -1,8 +1,5 @@
 package backend;
 
-
-import java.io.Serializable;
-
 import fr.sorbonne_u.components.connectors.AbstractConnector;
 import fr.sorbonne_u.components.endpoints.EndPointI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessCI;

@@ -158,7 +158,6 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI{
 		} else {
 			return filteredMap;
 		}
-		
 	}
 
 	@Override
@@ -233,38 +232,28 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI{
 	public <A extends Serializable, R, I extends MapReduceResultReceptionCI> void reduce(String computationURI,
 			ReductorI<A, R> reductor, CombinatorI<A> combinator, A identityAcc, A currentAcc, EndPointI<I> caller)
 			throws Exception {
-	    mapCompletion.getOrDefault(this.id + computationURI, CompletableFuture.completedFuture(null))
+	    mapCompletion.getOrDefault(computationURI, CompletableFuture.completedFuture(null))
 	        .thenRun(() -> {
 	            try {
 	                if (!caller.clientSideInitialised()) {
 	                    caller.initialiseClientSide(this);
 	                }
-	                if (this.listOfMapReduceUri.contains(computationURI)) {
-	                	this.listOfMapReduceUri.remove(computationURI);
-	                	// On applique le reduce
+	                if (this.mapCompletion.containsKey(this.id + computationURI)) {
+	                    
 	                	A res1 = memoryTable.get(computationURI).reduce(currentAcc, (u,d) -> reductor.apply(u,(R) d), combinator);
 	                	this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().reduce(computationURI, reductor, combinator, identityAcc, currentAcc, this.mapResultEndPoint);
-	                	
-	                	// On libere le noeud précedent
-	                	if (caller instanceof Node) {
-	                		caller.getClientSideReference().acceptResult(computationURI, this.id, currentAcc);
-	                	}
+	                	this.mapCompletion.remove(this.id + computationURI);
 	                	
 	                	CompletableFuture<Serializable> future = new CompletableFuture<>();
-	                	reduceCompletion.put(computationURI, future);
-	                	
+	                	reduceCompletion.put(computationURI + this.id, future);
+	                    
 	                	A res2 = (A) future.get();
-	                	
-	                	// On combine et on envoie le résultat
 	                	
 	                	caller.getClientSideReference().acceptResult(computationURI, this.id, 
 	                			combinator.apply(res1, res2));
 
-	                    caller.cleanUpClientSide();
-	                	
-	                	
+	                    caller.cleanUpClientSide();	                    
 	                } else {
-	                	System.out.println("Je suis la");
 	                	caller.getClientSideReference().acceptResult(computationURI, this.id, currentAcc);
 	                    caller.cleanUpClientSide();
 	                }
@@ -328,10 +317,9 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI{
 	
 	@Override
 	public void acceptResult(String computationURI, String emitterId, Serializable acc) throws Exception {
-		synchronized (this.reduceCompletion) {
-		    CompletableFuture<Serializable> future = (CompletableFuture<Serializable>) this.reduceCompletion.remove(computationURI);
-		    future.complete(acc);
-		}
+	    CompletableFuture<Serializable> future = (CompletableFuture<Serializable>) this.reduceCompletion.remove(computationURI + this.id);
+	    future.complete(acc);
+	    this.mapCompletion.remove(this.id + computationURI);
 	}
 
 	

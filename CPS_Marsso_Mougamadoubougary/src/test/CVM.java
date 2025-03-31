@@ -1,14 +1,19 @@
 package test;
 
 
+import java.time.Instant;
+import java.util.concurrent.TimeUnit;
+
 import backend.CompositeEndPoint;
 import backend.MapReduceResultReceptionEndpoint;
 import backend.Node;
 import backend.ResultReceptionEndpoint;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.cvm.AbstractCVM;
-import frontend.Client;
+import fr.sorbonne_u.utils.aclocks.ClocksServer;
+import frontend.Client1;
 import frontend.Client2;
+import frontend.Client3;
 import frontend.DHTServicesEndpoint;
 import frontend.Facade;
 
@@ -18,9 +23,23 @@ extends AbstractCVM{
 	public CVM() throws Exception {
 		super();
 	}
+	
+	public static final String TEST_CLOCK_URI = "test-clock";
+	public static final Instant START_INSTANT =
+	Instant.now();
+	protected static final long START_DELAY = 3000L;
+	public static final double ACCELERATION_FACTOR = 60.0;
 		
 	@Override
 	public void deploy() throws Exception{
+		
+		long unixEpochStartTimeInNanos = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis() + START_DELAY);
+		
+		AbstractComponent.createComponent(
+			ClocksServer.class.getCanonicalName(),
+			new Object[]{
+			TEST_CLOCK_URI, unixEpochStartTimeInNanos, START_INSTANT, ACCELERATION_FACTOR});
+				
 		CompositeEndPoint ep2 = new CompositeEndPoint(2);
 		MapReduceResultReceptionEndpoint epMR2 = new MapReduceResultReceptionEndpoint();
 		
@@ -65,10 +84,13 @@ extends AbstractCVM{
 				10, 10, ((DHTServicesEndpoint) ep1.copyWithSharable()), ((CompositeEndPoint)ep2.copyWithSharable()), ((ResultReceptionEndpoint) epR0.copyWithSharable()),
 				((MapReduceResultReceptionEndpoint) epMR0.copyWithSharable())});
 		
-		AbstractComponent.createComponent(Client.class.getCanonicalName(), new Object[] {
+		AbstractComponent.createComponent(Client1.class.getCanonicalName(), new Object[] {
 				10, 10, ((DHTServicesEndpoint) ep1.copyWithSharable())});
 		
 		AbstractComponent.createComponent(Client2.class.getCanonicalName(), new Object[] {
+				10, 10, ((DHTServicesEndpoint) ep1.copyWithSharable())});
+		
+		AbstractComponent.createComponent(Client3.class.getCanonicalName(), new Object[] {
 				10, 10, ((DHTServicesEndpoint) ep1.copyWithSharable())});
 		
 		super.deploy();
