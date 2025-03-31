@@ -21,6 +21,7 @@ extends BCMEndPoint<ResultReceptionCI>{
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	private int executorServiceIndex;
 
 	@Override
 	protected AbstractInboundPort makeInboundPort(AbstractComponent c, String inboundPortURI) throws Exception {
@@ -31,7 +32,7 @@ extends BCMEndPoint<ResultReceptionCI>{
 						"inboundPortURI != null && !inboundPortURI.isEmpty()");
 
 		ResultReceptionInboundPort p =
-				new ResultReceptionInboundPort(this.inboundPortURI, c);
+				new ResultReceptionInboundPort(this.inboundPortURI, this.executorServiceIndex, c);
 		p.publishPort();
 
 		// Postconditions checking
@@ -90,6 +91,10 @@ extends BCMEndPoint<ResultReceptionCI>{
 				assert	invariants(this) : new InvariantException("invariants(this)");
 				
 				return p;
+	}
+	
+	public void setExecutorServiceIndex(int executorServiceIndex) {
+		this.executorServiceIndex = executorServiceIndex;
 	}
 
 }

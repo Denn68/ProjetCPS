@@ -35,6 +35,10 @@ import fr.sorbonne_u.cps.mapreduce.utils.URIGenerator;
 public class Node 
 extends AbstractComponent
 implements ContentAccessI, MapReduceI, MapReduceResultReceptionI{
+	
+	public static final String			MAPREDUCE_RESULT_HANDLER_URI = "mrh" ;
+	public static final String			MAPREDUCE_HANDLER_URI = "mh" ;
+	public static final String			CONTENT_ACCESS_HANDLER_URI = "cah" ;
 
 	protected Node(int nbThreads, int nbSchedulableThreads, int min, int max, 
 			CompositeEndPoint compositeEndPointServer, CompositeEndPoint compositeEndPointClient, 
@@ -46,6 +50,14 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI{
 		this.memoryTable = new HashMap<>();
 		this.listOfUri = new ArrayList<String>();
 		this.listOfMapReduceUri = new ArrayList<String>();
+		
+		this.createNewExecutorService(MAPREDUCE_RESULT_HANDLER_URI, 10, false);
+		this.createNewExecutorService(MAPREDUCE_HANDLER_URI, 10, false);
+		this.createNewExecutorService(CONTENT_ACCESS_HANDLER_URI, 10, false);
+		mapReduceResultEndPointServer.setExecutorServiceIndex(this.getExecutorServiceIndex(MAPREDUCE_RESULT_HANDLER_URI));
+		compositeEndPointServer.setContentAccessExecutorServiceIndex(this.getExecutorServiceIndex(CONTENT_ACCESS_HANDLER_URI));
+		compositeEndPointServer.setMapReduceExecutorServiceIndex(this.getExecutorServiceIndex(MAPREDUCE_HANDLER_URI));
+		
 		compositeEndPointServer.initialiseServerSide(this);
 		mapReduceResultEndPointServer.initialiseServerSide(this);
 		this.mapResultEndPoint = mapReduceResultEndPointServer;

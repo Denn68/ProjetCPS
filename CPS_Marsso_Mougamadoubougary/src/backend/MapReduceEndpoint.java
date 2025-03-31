@@ -21,6 +21,7 @@ extends BCMEndPoint<MapReduceCI>{
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	private int executorServiceIndex;
 
 	@Override
 	protected AbstractInboundPort makeInboundPort(AbstractComponent c, String inboundPortURI) throws Exception {
@@ -31,7 +32,7 @@ extends BCMEndPoint<MapReduceCI>{
 						"inboundPortURI != null && !inboundPortURI.isEmpty()");
 
 		MapReduceInboundPort p =
-				new MapReduceInboundPort(this.inboundPortURI, c);
+				new MapReduceInboundPort(this.inboundPortURI, this.executorServiceIndex, c);
 		p.publishPort();
 
 		// Postconditions checking
@@ -90,6 +91,10 @@ extends BCMEndPoint<MapReduceCI>{
 				assert	invariants(this) : new InvariantException("invariants(this)");
 				
 				return p;
+	}
+	
+	public void setExecutorServiceIndex(int executorServiceIndex) {
+		this.executorServiceIndex = executorServiceIndex;
 	}
 
 }

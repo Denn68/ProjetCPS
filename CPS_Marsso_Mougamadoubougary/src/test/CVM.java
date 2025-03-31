@@ -2,13 +2,13 @@ package test;
 
 
 import backend.CompositeEndPoint;
-import backend.CompositeResultReceptionEndPoint;
 import backend.MapReduceResultReceptionEndpoint;
 import backend.Node;
 import backend.ResultReceptionEndpoint;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.cvm.AbstractCVM;
 import frontend.Client;
+import frontend.Client2;
 import frontend.DHTServicesEndpoint;
 import frontend.Facade;
 
@@ -66,6 +66,9 @@ extends AbstractCVM{
 				((MapReduceResultReceptionEndpoint) epMR0.copyWithSharable())});
 		
 		AbstractComponent.createComponent(Client.class.getCanonicalName(), new Object[] {
+				10, 10, ((DHTServicesEndpoint) ep1.copyWithSharable())});
+		
+		AbstractComponent.createComponent(Client2.class.getCanonicalName(), new Object[] {
 				10, 10, ((DHTServicesEndpoint) ep1.copyWithSharable())});
 		
 		super.deploy();

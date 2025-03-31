@@ -13,11 +13,37 @@ public class ContentAccessInboundPort
 extends AbstractInboundPort
 implements ContentAccessCI{
 
-	public ContentAccessInboundPort(String uri, ComponentI owner) throws Exception {
-		super(uri, ContentAccessCI.class, owner);
-	}
+	//public ContentAccessInboundPort(String uri, ComponentI owner) throws Exception {
+	//	super(uri, ContentAccessCI.class, owner);
+	//}
+	
+	public				ContentAccessInboundPort(
+			int executorIndex,
+			ComponentI owner
+			) throws Exception
+		{
+			super(ContentAccessCI.class, owner);
+
+			assert	owner.validExecutorServiceIndex(executorIndex) ;
+
+			this.executorIndex = executorIndex ;
+		}
+	
+	public			ContentAccessInboundPort(
+			String uri,
+			int executorIndex,
+			ComponentI owner
+			) throws Exception
+		{
+			super(uri, ContentAccessCI.class, owner);
+	
+			assert	owner.validExecutorServiceIndex(executorIndex) ;
+	
+			this.executorIndex = executorIndex ;
+		}
 
 	private static final long serialVersionUID = 1L;
+	protected final int	executorIndex ;
 
 	@Override
 	public ContentDataI getSync(String computationURI, ContentKeyI key) throws Exception {
@@ -46,7 +72,9 @@ implements ContentAccessCI{
 	@Override
 	public <I extends ResultReceptionCI> void get(String computationURI, ContentKeyI key, EndPointI<I> caller)
 			throws Exception {
-		this.getOwner().runTask(owner -> {
+		this.getOwner().runTask(
+				executorIndex,			// identifies the pool of threads to be used
+				owner -> {
 			try {
 				((ContentAccessI)owner).get(computationURI, key, caller);
 			} catch (Exception e) {
@@ -59,7 +87,9 @@ implements ContentAccessCI{
 	@Override
 	public <I extends ResultReceptionCI> void put(String computationURI, ContentKeyI key, ContentDataI value,
 			EndPointI<I> caller) throws Exception {
-		this.getOwner().runTask(owner -> {
+		this.getOwner().runTask(
+				executorIndex,			// identifies the pool of threads to be used
+				owner -> {
 			try {
 				((ContentAccessI)owner).put(computationURI, key, value, caller);
 			} catch (Exception e) {
@@ -73,7 +103,9 @@ implements ContentAccessCI{
 	@Override
 	public <I extends ResultReceptionCI> void remove(String computationURI, ContentKeyI key, EndPointI<I> caller)
 			throws Exception {
-		this.getOwner().runTask(owner -> {
+		this.getOwner().runTask(
+				executorIndex,			// identifies the pool of threads to be used
+				owner -> {
 			try {
 				((ContentAccessI)owner).remove(computationURI, key, caller);
 			} catch (Exception e) {

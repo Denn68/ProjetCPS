@@ -34,12 +34,21 @@ import fr.sorbonne_u.cps.mapreduce.utils.URIGenerator;
 public class Facade
 extends AbstractComponent
 implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
+	
+	public static final String			CONTENT_ACCESS_RESULT_HANDLER_URI = "carh" ;
+	public static final String			MAPREDUCE_RESULT_HANDLER_URI = "mrh" ;
 
 	protected Facade(int nbThreads, int nbSchedulableThreads, 
 			DHTServicesEndpoint dhtEndPointServer, CompositeEndPoint compositeEndPointClient,
 			ResultReceptionEndpoint contentResultEndPointServer, MapReduceResultReceptionEndpoint mapReduceResultEndPointServer) throws ConnectionException {
 		super(nbThreads, nbSchedulableThreads);
 		dhtEndPointServer.initialiseServerSide(this);
+		
+		this.createNewExecutorService(CONTENT_ACCESS_RESULT_HANDLER_URI, 10, false);
+		this.createNewExecutorService(MAPREDUCE_RESULT_HANDLER_URI, 10, false);
+		contentResultEndPointServer.setExecutorServiceIndex(this.getExecutorServiceIndex(CONTENT_ACCESS_RESULT_HANDLER_URI));
+		mapReduceResultEndPointServer.setExecutorServiceIndex(this.getExecutorServiceIndex(MAPREDUCE_RESULT_HANDLER_URI));
+		
 		contentResultEndPointServer.initialiseServerSide(this);
 		mapReduceResultEndPointServer.initialiseServerSide(this);
 		this.contentResultEndPointServer = contentResultEndPointServer;
@@ -47,6 +56,7 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 		this.compositeEndPointClient = compositeEndPointClient;
 		this.contentMemoryTable = new HashMap<>();
 		this.mapMemoryTable = new HashMap<>();
+		this.getExecutorServiceIndex(STANDARD_REQUEST_HANDLER_URI);
 	}
 	
 	private HashMap<String, CompletableFuture<Serializable>> contentMemoryTable;

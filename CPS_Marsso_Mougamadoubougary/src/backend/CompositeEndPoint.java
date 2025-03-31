@@ -27,5 +27,13 @@ extends BCMCompositeEndPoint{
 	public MapReduceEndpoint getMapReduceEndpoint() {
 		return (MapReduceEndpoint) this.getEndPoint(MapReduceCI.class);
 	}
+	
+	public void setContentAccessExecutorServiceIndex(int contentAccessExecutorServiceIndex) {
+		((ContentAccessEndpoint) this.retrieveEndPoint(ContentAccessCI.class)).setExecutorServiceIndex(contentAccessExecutorServiceIndex);
+	}
+	
+	public void setMapReduceExecutorServiceIndex(int mapReduceExecutorServiceIndex) {
+		((MapReduceEndpoint) this.retrieveEndPoint(MapReduceCI.class)).setExecutorServiceIndex(mapReduceExecutorServiceIndex);
+	}
 
 }
