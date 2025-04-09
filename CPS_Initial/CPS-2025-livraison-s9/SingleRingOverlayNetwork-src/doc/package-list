@@ -1,0 +1,9 @@
+fr.sorbonne_u.cps.sron.connection
+fr.sorbonne_u.cps.sron.diffusion
+fr.sorbonne_u.cps.sron.diffusion.components
+fr.sorbonne_u.cps.sron.election
+fr.sorbonne_u.cps.sron.election.components
+fr.sorbonne_u.cps.sron.election.connection
+fr.sorbonne_u.cps.sron.election.interfaces
+fr.sorbonne_u.cps.sron.interfaces
+fr.sorbonne_u.cps.sron.plugins

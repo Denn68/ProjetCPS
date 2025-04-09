@@ -20,28 +20,36 @@ import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentKeyI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ResultReceptionCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.endpoints.ContentNodeCompositeEndPointI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.management.DHTManagementCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.management.DHTManagementI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.management.LoadPolicyI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.CombinatorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceResultReceptionCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceResultReceptionI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ParallelMapReduceCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ParallelMapReduceI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ProcessorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ReductorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
+import fr.sorbonne_u.cps.mapreduce.utils.SerializablePair;
 import fr.sorbonne_u.cps.mapreduce.utils.URIGenerator;
 
-@OfferedInterfaces(offered = { ContentAccessCI.class, MapReduceCI.class, MapReduceResultReceptionCI.class})
-@RequiredInterfaces(required = { ContentAccessCI.class, MapReduceCI.class, ResultReceptionCI.class, MapReduceResultReceptionCI.class })
+@OfferedInterfaces(offered = { ContentAccessCI.class, MapReduceCI.class, MapReduceResultReceptionCI.class, ParallelMapReduceCI.class})
+@RequiredInterfaces(required = { ContentAccessCI.class, MapReduceCI.class, ResultReceptionCI.class, MapReduceResultReceptionCI.class, ParallelMapReduceCI.class })
 public class Node 
 extends AbstractComponent
-implements ContentAccessI, MapReduceI, MapReduceResultReceptionI{
+implements ContentAccessI, MapReduceI, MapReduceResultReceptionI, ParallelMapReduceI, DHTManagementI{
 	
 	public static final String			MAPREDUCE_RESULT_HANDLER_URI = "mrh" ;
 	public static final String			MAPREDUCE_HANDLER_URI = "mh" ;
 	public static final String			CONTENT_ACCESS_HANDLER_URI = "cah" ;
 
 	protected Node(int nbThreads, int nbSchedulableThreads, int min, int max, 
-			CompositeEndPoint compositeEndPointServer, CompositeEndPoint compositeEndPointClient, 
+			CompositeEndPoint compositeEndPointServer,
+			CompositeEndPoint compositeEndPointClient, 
 			MapReduceResultReceptionEndpoint mapReduceResultEndPointServer) throws ConnectionException {
 		super(nbThreads, nbSchedulableThreads);
 		this.intervalMin = min;
@@ -57,7 +65,7 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI{
 		mapReduceResultEndPointServer.setExecutorServiceIndex(this.getExecutorServiceIndex(MAPREDUCE_RESULT_HANDLER_URI));
 		compositeEndPointServer.setContentAccessExecutorServiceIndex(this.getExecutorServiceIndex(CONTENT_ACCESS_HANDLER_URI));
 		compositeEndPointServer.setMapReduceExecutorServiceIndex(this.getExecutorServiceIndex(MAPREDUCE_HANDLER_URI));
-		
+			
 		compositeEndPointServer.initialiseServerSide(this);
 		mapReduceResultEndPointServer.initialiseServerSide(this);
 		this.mapResultEndPoint = mapReduceResultEndPointServer;
@@ -320,6 +328,66 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI{
 	    CompletableFuture<Serializable> future = (CompletableFuture<Serializable>) this.reduceCompletion.remove(computationURI + this.id);
 	    future.complete(acc);
 	    this.mapCompletion.remove(this.id + computationURI);
+	}
+	
+	@Override
+	public <R extends Serializable> void parallelMap(String computationURI, SelectorI selector, ProcessorI<R> processor,
+			ParallelismPolicyI parallelismPolicy) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public <A extends Serializable, R, I extends MapReduceResultReceptionCI> void parallelReduce(String computationURI,
+			ReductorI<A, R> reductor, CombinatorI<A> combinator, A identityAcc, A currentAcc,
+			ParallelismPolicyI parallelismPolicy, EndPointI<I> caller) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void initialiseContent(NodeContentI content) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public NodeStateI getCurrentState() throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public NodeContentI suppressNode() throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public <CI extends ResultReceptionCI> void split(String computationURI, LoadPolicyI loadPolicy,
+			EndPointI<CI> caller) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public <CI extends ResultReceptionCI> void merge(String computationURI, LoadPolicyI loadPolicy,
+			EndPointI<CI> caller) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void computeChords(String computationURI, int numberOfChords) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public SerializablePair<ContentNodeCompositeEndPointI<ContentAccessCI, ParallelMapReduceCI, DHTManagementCI>, Integer> getChordInfo(
+			int offset) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	
