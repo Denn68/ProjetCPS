@@ -16,6 +16,7 @@ import frontend.Client2;
 import frontend.Client3;
 import frontend.DHTServicesEndpoint;
 import frontend.Facade;
+import frontend.Facade2;
 
 public class CVM 
 extends AbstractCVM{
@@ -80,7 +81,7 @@ extends AbstractCVM{
 		
 		DHTServicesEndpoint ep1 = new DHTServicesEndpoint(); 
 		
-		AbstractComponent.createComponent(Facade.class.getCanonicalName(), new Object[] {
+		AbstractComponent.createComponent(Facade2.class.getCanonicalName(), new Object[] {
 				10, 10, ((DHTServicesEndpoint) ep1.copyWithSharable()), ((CompositeEndPoint)ep2.copyWithSharable()), ((ResultReceptionEndpoint) epR0.copyWithSharable()),
 				((MapReduceResultReceptionEndpoint) epMR0.copyWithSharable())});
 		
