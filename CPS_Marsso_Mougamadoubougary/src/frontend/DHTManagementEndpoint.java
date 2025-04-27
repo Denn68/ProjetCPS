@@ -29,7 +29,7 @@ extends BCMEndPoint<DHTManagementCI>{
 						"inboundPortURI != null && !inboundPortURI.isEmpty()");
 
 		DHTManagementInboundPort p =
-				new DHTManagementInboundPort(this.inboundPortURI, c);
+				new DHTManagementInboundPort(inboundPortURI, c);
 		p.publishPort();
 
 		// Postconditions checking
@@ -58,13 +58,14 @@ extends BCMEndPoint<DHTManagementCI>{
 			throws Exception {
 		// Preconditions checking
 				assert	c != null : new PreconditionException("c != null");
+				assert this.inboundPortURI.equals(inboundPortURI) : new PreconditionException("Different InboundPortURI");
 
 				DHTManagementOutboundPort p =
 						new DHTManagementOutboundPort(c);
 				p.publishPort();
 				c.doPortConnection(
 						p.getPortURI(),
-						this.inboundPortURI,
+						inboundPortURI,
 						DHTManagementConnector.class.getCanonicalName());
 
 				// Postconditions checking

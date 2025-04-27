@@ -32,7 +32,7 @@ extends BCMEndPoint<MapReduceResultReceptionCI>{
 						"inboundPortURI != null && !inboundPortURI.isEmpty()");
 
 		MapReduceResultReceptionInboundPort p =
-				new MapReduceResultReceptionInboundPort(this.inboundPortURI, this.executorServiceIndex, c);
+				new MapReduceResultReceptionInboundPort(inboundPortURI, this.executorServiceIndex, c);
 		p.publishPort();
 
 		// Postconditions checking
@@ -61,13 +61,14 @@ extends BCMEndPoint<MapReduceResultReceptionCI>{
 			throws Exception {
 		// Preconditions checking
 				assert	c != null : new PreconditionException("c != null");
+				assert this.inboundPortURI.equals(inboundPortURI) : new PreconditionException("Different InboundPortURI");
 
 				MapReduceResultReceptionOutboundPort p =
 						new MapReduceResultReceptionOutboundPort(c);
 				p.publishPort();
 				c.doPortConnection(
 						p.getPortURI(),
-						this.inboundPortURI,
+						inboundPortURI,
 						MapReduceResultReceptionConnector.class.getCanonicalName());
 
 				// Postconditions checking

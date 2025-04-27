@@ -32,7 +32,7 @@ extends BCMEndPoint<ContentAccessCI>{
 						"inboundPortURI != null && !inboundPortURI.isEmpty()");
 
 		ContentAccessInboundPort p =
-				new ContentAccessInboundPort(this.inboundPortURI, this.executorServiceIndex, c);
+				new ContentAccessInboundPort(inboundPortURI, this.executorServiceIndex, c);
 		p.publishPort();
 
 		// Postconditions checking
@@ -61,13 +61,14 @@ extends BCMEndPoint<ContentAccessCI>{
 			throws Exception {
 		// Preconditions checking
 				assert	c != null : new PreconditionException("c != null");
+				assert this.inboundPortURI.equals(inboundPortURI) : new PreconditionException("Different InboundPortURI");
 
 				ContentAccessOutboundPort p =
 						new ContentAccessOutboundPort(c);
 				p.publishPort();
 				c.doPortConnection(
 						p.getPortURI(),
-						this.inboundPortURI,
+						inboundPortURI,
 						ContentAccessConnector.class.getCanonicalName());
 
 				// Postconditions checking

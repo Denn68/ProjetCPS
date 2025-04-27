@@ -32,7 +32,7 @@ extends BCMEndPoint<ResultReceptionCI>{
 						"inboundPortURI != null && !inboundPortURI.isEmpty()");
 
 		ResultReceptionInboundPort p =
-				new ResultReceptionInboundPort(this.inboundPortURI, this.executorServiceIndex, c);
+				new ResultReceptionInboundPort(inboundPortURI, this.executorServiceIndex, c);
 		p.publishPort();
 
 		// Postconditions checking
@@ -61,13 +61,14 @@ extends BCMEndPoint<ResultReceptionCI>{
 			throws Exception {
 		// Preconditions checking
 				assert	c != null : new PreconditionException("c != null");
+				assert this.inboundPortURI.equals(inboundPortURI) : new PreconditionException("Different InboundPortURI");
 
 				ResultReceptionOutboundPort p =
 						new ResultReceptionOutboundPort(c);
 				p.publishPort();
 				c.doPortConnection(
 						p.getPortURI(),
-						this.inboundPortURI,
+						inboundPortURI,
 						ResultReceptionConnector.class.getCanonicalName());
 
 				// Postconditions checking

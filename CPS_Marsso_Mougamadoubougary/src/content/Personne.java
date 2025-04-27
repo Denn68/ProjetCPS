@@ -1,4 +1,4 @@
-package backend;
+package content;
 
 import java.io.Serializable;
 

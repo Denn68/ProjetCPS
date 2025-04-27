@@ -1,4 +1,4 @@
-package backend;
+package content;
 
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentKeyI;
 
@@ -14,6 +14,7 @@ implements ContentKeyI{
 	
 	@Override
 	public int hashCode() {
-		return integerKey % 2000;
+	    return Math.floorMod(integerKey, 2000);
 	}
+
 }

@@ -1,6 +1,7 @@
 package backend;
 
 import fr.sorbonne_u.components.endpoints.BCMCompositeEndPoint;
+import fr.sorbonne_u.components.endpoints.EndPointI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentAccessCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceCI;
 
@@ -20,12 +21,12 @@ extends BCMCompositeEndPoint{
 		this.addEndPoint(mapReduceEndpoint);
 	}
 	
-	public ContentAccessEndpoint getContentAccessEndpoint() {
-		return (ContentAccessEndpoint) this.getEndPoint(ContentAccessCI.class);
+	public EndPointI<ContentAccessCI> getContentAccessEndpoint() {
+		return this.getEndPoint(ContentAccessCI.class);
 	}
 	
-	public MapReduceEndpoint getMapReduceEndpoint() {
-		return (MapReduceEndpoint) this.getEndPoint(MapReduceCI.class);
+	public EndPointI<MapReduceCI> getMapReduceEndpoint() {
+		return this.getEndPoint(MapReduceCI.class);
 	}
 	
 	public void setContentAccessExecutorServiceIndex(int contentAccessExecutorServiceIndex) {

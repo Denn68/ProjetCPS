@@ -1,8 +1,9 @@
 package frontend;
 
 import java.io.Serializable;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import backend.CompositeEndPoint;
 import backend.MapReduceResultReceptionEndpoint;
@@ -37,10 +38,18 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 	
 	public static final String			CONTENT_ACCESS_RESULT_HANDLER_URI = "carh" ;
 	public static final String			MAPREDUCE_RESULT_HANDLER_URI = "mrh" ;
+	public static final String			MAPREDUCE_METHOD = "mapreduce" ;
+	public static final String			GET_METHOD = "get" ;
+	public static final String			PUT_METHOD = "put" ;
+	public static final String			REMOVE_METHOD = "remove" ;
 
-	protected Facade(int nbThreads, int nbSchedulableThreads, 
-			DHTServicesEndpoint dhtEndPointServer, CompositeEndPoint compositeEndPointClient,
-			ResultReceptionEndpoint contentResultEndPointServer, MapReduceResultReceptionEndpoint mapReduceResultEndPointServer) throws ConnectionException {
+	protected Facade(int nbThreads,
+			int nbSchedulableThreads, 
+			DHTServicesEndpoint dhtEndPointServer,
+			CompositeEndPoint compositeEndPointClient,
+			ResultReceptionEndpoint contentResultEndPointServer,
+			MapReduceResultReceptionEndpoint mapReduceResultEndPointServer) throws ConnectionException {
+		
 		super(nbThreads, nbSchedulableThreads);
 		dhtEndPointServer.initialiseServerSide(this);
 		
@@ -54,101 +63,90 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 		this.contentResultEndPointServer = contentResultEndPointServer;
 		this.mapReduceResultEndPointServer = mapReduceResultEndPointServer;
 		this.compositeEndPointClient = compositeEndPointClient;
-		this.contentMemoryTable = new HashMap<>();
-		this.mapMemoryTable = new HashMap<>();
+		this.contentMemoryTable = new ConcurrentHashMap<>();
+		this.mapMemoryTable = new ConcurrentHashMap<>();
 		this.getExecutorServiceIndex(STANDARD_REQUEST_HANDLER_URI);
 	}
 	
-	private HashMap<String, CompletableFuture<Serializable>> contentMemoryTable;
-	private HashMap<String, CompletableFuture<Serializable>> mapMemoryTable;
+	private Map<String, CompletableFuture<Serializable>> contentMemoryTable;
+	private Map<String, CompletableFuture<Serializable>> mapMemoryTable;
 	private ResultReceptionEndpoint contentResultEndPointServer;
 	private MapReduceResultReceptionEndpoint mapReduceResultEndPointServer;
 	
 	@Override
-	public void start() {
-		try {
-			super.start();
-		} catch (ComponentStartException e) {
-			e.printStackTrace();
-		}
-		if(!this.compositeEndPointClient.clientSideInitialised()) {
-			try {
-				this.compositeEndPointClient.initialiseClientSide(this);
-			} catch (ConnectionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		if(!this.compositeEndPointClient.getContentAccessEndpoint().clientSideInitialised()) {
-			try {
-				this.compositeEndPointClient.getContentAccessEndpoint().initialiseClientSide(this);
-			} catch (ConnectionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		if(!this.compositeEndPointClient.getMapReduceEndpoint().clientSideInitialised()) {
-			try {
-				this.compositeEndPointClient.getMapReduceEndpoint().initialiseClientSide(this);
-			} catch (ConnectionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+	public void start() throws ComponentStartException {
+	    super.start();
+
+	    try {
+	        if (!this.compositeEndPointClient.clientSideInitialised()) {
+	            this.compositeEndPointClient.initialiseClientSide(this);
+	        }
+
+	        if (!this.compositeEndPointClient.getContentAccessEndpoint().clientSideInitialised()) {
+	            this.compositeEndPointClient.getContentAccessEndpoint().initialiseClientSide(this);
+	        }
+
+	        if (!this.compositeEndPointClient.getMapReduceEndpoint().clientSideInitialised()) {
+	            this.compositeEndPointClient.getMapReduceEndpoint().initialiseClientSide(this);
+	        }
+
+	    } catch (Exception e) {
+	        throw new ComponentStartException("Erreur lors de l'initialisation des clients", e);
+	    }
 	}
+
 	private CompositeEndPoint compositeEndPointClient;
 	
 	
 	@Override
 	public ContentDataI get(ContentKeyI key) throws Exception {
-		String uri = URIGenerator.generateURI("get");
+		String uri = URIGenerator.generateURI(GET_METHOD);
 		
 		CompletableFuture<Serializable> future = new CompletableFuture<>();
 
-	    synchronized (this.contentMemoryTable) { // Utiliser concurrent Hash Map
-	        this.contentMemoryTable.put(uri, future);
-	    }
+	    this.contentMemoryTable.put(uri, future);
 	    
-		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation(uri);
-		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().get(uri, key, ((EndPointI<ResultReceptionCI>) this.contentResultEndPointServer));
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().
+			clearComputation(uri);
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().
+			get(uri, key, ((EndPointI<ResultReceptionCI>) this.contentResultEndPointServer));
 		
 		
         try {
             return (ContentDataI) future.get(); 
         } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-            return null; 
+        	throw new Exception("Échec de la récupération du contenu pour la clé : " + key, e);
         }
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <R extends Serializable, A extends Serializable> A mapReduce(SelectorI selector, ProcessorI<R> processor,
-			ReductorI<A, R> reductor, CombinatorI<A> combinator, A identity) throws Exception {
-			String uri = URIGenerator.generateURI("mapreduce");
-			
-			CompletableFuture<Serializable> future = new CompletableFuture<>();
+		ReductorI<A, R> reductor, CombinatorI<A> combinator, A identity) throws Exception {
+		String uri = URIGenerator.generateURI(MAPREDUCE_METHOD);
+		
+		CompletableFuture<Serializable> future = new CompletableFuture<>();
 
-		    synchronized (this.mapMemoryTable) {
-		        this.mapMemoryTable.put(uri, future);
-		    }
-		    
-			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().map(uri, selector, processor);
-			this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().reduce(uri, reductor, combinator, identity, identity, this.mapReduceResultEndPointServer);
+	    this.mapMemoryTable.put(uri, future);
+	    
+		this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().
+			map(uri, selector, processor);
+		this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().
+			reduce(uri, reductor, combinator, identity, identity, this.mapReduceResultEndPointServer);
 
-	        try {
-	        	A res = (A) future.get();
-	        	this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().clearMapReduceComputation(uri);
-	            return res; 
-	        } catch (InterruptedException | ExecutionException e) {
-	            e.printStackTrace();
-	            return null; 
-	        }
+        try {
+        	A res = (A) future.get();
+        	this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().
+        		clearMapReduceComputation(uri);
+            return res; 
+        } catch (InterruptedException | ExecutionException e) {
+        	throw new Exception("Échec de MapReduce", e); 
+        }
 	}
 
 	@Override
 	public ContentDataI put(ContentKeyI key, ContentDataI data) throws Exception {
-		String uri = URIGenerator.generateURI("put");
+		String uri = URIGenerator.generateURI(PUT_METHOD);
 		
 		CompletableFuture<Serializable> future = new CompletableFuture<>();
 
@@ -156,36 +154,36 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 	        this.contentMemoryTable.put(uri, future);
 	    }
 	    
-		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation(uri);
-		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().put(uri, key, data, ((EndPointI<ResultReceptionCI>) this.contentResultEndPointServer));
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().
+			clearComputation(uri);
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().
+			put(uri, key, data, ((EndPointI<ResultReceptionCI>) this.contentResultEndPointServer));
 		
         try {
             return (ContentDataI) future.get(); 
         } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-            return null; 
+        	throw new Exception("Échec de l'insertion du contenu pour la clé : " + key, e); 
         }
 	}
 
 	@Override
 	public ContentDataI remove(ContentKeyI key) throws Exception {
-		String uri = URIGenerator.generateURI("remove");
+		String uri = URIGenerator.generateURI(REMOVE_METHOD);
 		
 		CompletableFuture<Serializable> future = new CompletableFuture<>();
 
-	    synchronized (this.contentMemoryTable) {
-	        this.contentMemoryTable.put(uri, future);
-	    }
+	    this.contentMemoryTable.put(uri, future);
 
-		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().clearComputation(uri);
-		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().remove(uri, key, ((EndPointI<ResultReceptionCI>) this.contentResultEndPointServer));
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().
+			clearComputation(uri);
+		this.compositeEndPointClient.getContentAccessEndpoint().getClientSideReference().
+			remove(uri, key, ((EndPointI<ResultReceptionCI>) this.contentResultEndPointServer));
 		
 		
         try {
             return (ContentDataI) future.get(); 
         } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-            return null; 
+        	throw new Exception("Échec du retrait du contenu pour la clé : " + key, e); 
         }
 	}
 
@@ -213,7 +211,6 @@ implements DHTServicesI, MapReduceResultReceptionI, ResultReceptionI{
 	        	System.out.println("L'uri n'existe pas");
 	        }
 		}
-		
 	}
 
 }

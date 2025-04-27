@@ -33,7 +33,7 @@ extends BCMEndPoint<ParallelMapReduceCI>{
 						"inboundPortURI != null && !inboundPortURI.isEmpty()");
 
 		ParallelMapReduceInboundPort p =
-				new ParallelMapReduceInboundPort(this.inboundPortURI, this.executorServiceIndex, c);
+				new ParallelMapReduceInboundPort(inboundPortURI, this.executorServiceIndex, c);
 		p.publishPort();
 
 		// Postconditions checking
@@ -62,13 +62,14 @@ extends BCMEndPoint<ParallelMapReduceCI>{
 			throws Exception {
 		// Preconditions checking
 				assert	c != null : new PreconditionException("c != null");
+				assert this.inboundPortURI.equals(inboundPortURI) : new PreconditionException("Different InboundPortURI");
 
 				ParallelMapReduceOutboundPort p =
 						new ParallelMapReduceOutboundPort(c);
 				p.publishPort();
 				c.doPortConnection(
 						p.getPortURI(),
-						this.inboundPortURI,
+						inboundPortURI,
 						ParallelMapReduceConnector.class.getCanonicalName());
 
 				// Postconditions checking

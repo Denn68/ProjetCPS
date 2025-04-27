@@ -4,12 +4,11 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
-import backend.ContentKey;
-import backend.Personne;
+import content.ContentKey;
+import content.Personne;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
-import fr.sorbonne_u.components.exceptions.ConnectionException;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentDataI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentKeyI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.frontend.DHTServicesCI;
@@ -61,19 +60,16 @@ extends AbstractComponent
 	
 	DHTServicesEndpoint dhtEndPointClient;
 	@Override
-	public void start() {
+	public void start() throws ComponentStartException {
+		super.start();
+		
 		try {
-			super.start();
-		} catch (ComponentStartException e) {
-			e.printStackTrace();
-		}
-		if(!this.dhtEndPointClient.clientSideInitialised()) {
-			try {
+			if(!this.dhtEndPointClient.clientSideInitialised()) {
 				this.dhtEndPointClient.initialiseClientSide(this);
-			} catch (ConnectionException e) {
-				e.printStackTrace();
-			}
-		}
+			} 
+		} catch (Exception e) {
+	        throw new ComponentStartException("Erreur lors de l'initialisation du client", e);
+	    }
 	}
 	
 	public ContentDataI get(ContentKeyI key) throws Exception {
@@ -106,7 +102,7 @@ extends AbstractComponent
 	            @Override
 	            public void run() {
 	                try {                	
-	                    System.out.println("Clent2 " + reflectionInboundPortURI);
+	                    System.out.println("Client2 " + reflectionInboundPortURI);
 	                    
 	                    String attAGE = "AGE";
 	                	String attNOM = "NOM";

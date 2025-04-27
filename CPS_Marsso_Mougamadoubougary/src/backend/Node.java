@@ -39,7 +39,7 @@ import fr.sorbonne_u.cps.mapreduce.utils.URIGenerator;
 
 @OfferedInterfaces(offered = { ContentAccessCI.class, MapReduceCI.class, MapReduceResultReceptionCI.class, ParallelMapReduceCI.class})
 @RequiredInterfaces(required = { ContentAccessCI.class, MapReduceCI.class, ResultReceptionCI.class, MapReduceResultReceptionCI.class, ParallelMapReduceCI.class })
-public class Node 
+public class Node
 extends AbstractComponent
 implements ContentAccessI, MapReduceI, MapReduceResultReceptionI, ParallelMapReduceI, DHTManagementI{
 	
@@ -76,7 +76,7 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI, ParallelMapRed
 	private final ConcurrentHashMap<String, CompletableFuture<Void>> mapCompletion = new ConcurrentHashMap<>();
 	private final ConcurrentHashMap<String, CompletableFuture<Serializable>> reduceCompletion = new ConcurrentHashMap<>();
 	private HashMap<Integer, ContentDataI> tableHachage;
-	private HashMap<String, Stream<ContentDataI>> memoryTable;
+	private HashMap<String, Stream<? extends Serializable>> memoryTable;
 	private int intervalMin;
 	private int intervalMax;
 	private List<String> listOfUri;
@@ -93,39 +93,32 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI, ParallelMapRed
 	}
 	
 	@Override
-	public void start() {
-		try {
-			super.start();
-		} catch (ComponentStartException e) {
-			e.printStackTrace();
-		}
-		if(!this.compositeEndPointClient.clientSideInitialised()) {
-			try {
-				this.compositeEndPointClient.initialiseClientSide(this);
-			} catch (ConnectionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		if(!this.compositeEndPointClient.getContentAccessEndpoint().clientSideInitialised()) {
-			try {
-				this.compositeEndPointClient.getContentAccessEndpoint().initialiseClientSide(this);
-			} catch (ConnectionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		if(!this.compositeEndPointClient.getMapReduceEndpoint().clientSideInitialised()) {
-			try {
-				this.compositeEndPointClient.getMapReduceEndpoint().initialiseClientSide(this);
-			} catch (ConnectionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		id = URIGenerator.generateURI();
+	public void start() throws ComponentStartException {
+	    super.start();
+
+	    try {
+	        if (!compositeEndPointClient.clientSideInitialised()) {
+	            compositeEndPointClient.initialiseClientSide(this);
+	        }
+
+	        ContentAccessEndpoint contentAccessEndpoint = (ContentAccessEndpoint) compositeEndPointClient.getContentAccessEndpoint();
+	        if (!contentAccessEndpoint.clientSideInitialised()) {
+	            contentAccessEndpoint.initialiseClientSide(this);
+	        }
+
+	        MapReduceEndpoint mapReduceEndpoint = (MapReduceEndpoint) compositeEndPointClient.getMapReduceEndpoint();
+	        if (!mapReduceEndpoint.clientSideInitialised()) {
+	            mapReduceEndpoint.initialiseClientSide(this);
+	        }
+
+	        id = URIGenerator.generateURI();
+
+	    } catch (Exception e) {
+	        throw new ComponentStartException("Erreur lors de l'initialisation des clients", e);
+	    }
 	}
+
+
 
 	@Override
 	public void clearMapReduceComputation(String computationUri) throws Exception {
@@ -144,29 +137,46 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI, ParallelMapRed
 	}
 
 	@Override
-	public <R extends Serializable> void mapSync(String computationUri, SelectorI selector, ProcessorI<R> processor) throws Exception {
-		if(this.listOfMapReduceUri.contains(computationUri)) {
-			return;
-		}
-		this.listOfMapReduceUri.add(computationUri);
-		this.memoryTable.put(computationUri, ((Stream<ContentDataI>) this.tableHachage.values().stream()
-		.filter(((Predicate<ContentDataI>) selector))
-		.map(processor)));
-		this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().mapSync(computationUri, selector, processor);
+	public <R extends Serializable> void mapSync(
+	        String computationUri,
+	        SelectorI selector,
+	        ProcessorI<R> processor
+	) throws Exception {
+		if (this.listOfMapReduceUri.add(computationUri)) {
+            Stream<R> resultStream = this.tableHachage.values().stream()
+                    .filter(selector)
+                    .map(processor);
+            this.memoryTable.put(computationUri, resultStream);
+
+            this.compositeEndPointClient.getMapReduceEndpoint()
+                    .getClientSideReference()
+                    .mapSync(computationUri, selector, processor);
+        }
 	}
 
+
 	@Override
-	public <A extends Serializable, R> A reduceSync(String computationUri, ReductorI<A, R> reductor, CombinatorI<A> combinator, A filteredMap)
-			throws Exception {
-		if(this.listOfMapReduceUri.contains(computationUri)) {
-			this.listOfMapReduceUri.remove(computationUri);
-			return combinator.apply(memoryTable.get(computationUri).reduce(filteredMap, (u,d) -> reductor.apply(u,(R) d), combinator), 
-					this.compositeEndPointClient.getMapReduceEndpoint().getClientSideReference().reduceSync(computationUri, reductor, combinator, filteredMap));
-			
-		} else {
-			return filteredMap;
-		}
+	public <A extends Serializable, R> A reduceSync(
+	        String computationUri,
+	        ReductorI<A, R> reductor,
+	        CombinatorI<A> combinator,
+	        A filteredMap
+	) throws Exception {
+	    if (this.listOfMapReduceUri.remove(computationUri)) {
+	        A localResult = memoryTable.get(computationUri)
+	                .reduce(filteredMap, (u, d) -> reductor.apply(u, (R) d), combinator);
+
+	        A remoteResult = this.compositeEndPointClient
+	                .getMapReduceEndpoint()
+	                .getClientSideReference()
+	                .reduceSync(computationUri, reductor, combinator, filteredMap);
+
+	        return combinator.apply(localResult, remoteResult);
+	    } else {
+	        return filteredMap;
+	    }
 	}
+
 
 	@Override
 	public void clearComputation(String computationUri) throws Exception {
@@ -223,9 +233,9 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI, ParallelMapRed
                 }
                 this.listOfMapReduceUri.add(computationURI);
                 
-                this.memoryTable.put(computationURI, ((Stream<ContentDataI>) this.tableHachage.values().stream()
+                this.memoryTable.put(computationURI, this.tableHachage.values().stream()
                         .filter(((Predicate<ContentDataI>) selector))
-                        .map(processor)));
+                        .map(processor));
                 
                 CompletableFuture<Void> future = CompletableFuture.completedFuture(null);
                 mapCompletion.put(this.id + computationURI, future);
