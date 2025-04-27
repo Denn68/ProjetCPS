@@ -14,8 +14,15 @@ import fr.sorbonne_u.exceptions.PreconditionException;
 public class DHTManagementEndpoint 
 extends BCMEndPoint<DHTManagementCI>{
 
+	private int executorIndex;
+
 	public DHTManagementEndpoint() {
 		super(DHTManagementCI.class, DHTManagementCI.class);
+	}
+	
+	public DHTManagementEndpoint(String inboundPortURI, int executorServiceIndex) {
+		super(DHTManagementCI.class, DHTManagementCI.class, inboundPortURI);
+		this.executorIndex = executorServiceIndex;
 	}
 
 	private static final long serialVersionUID = 1L;
@@ -27,9 +34,12 @@ extends BCMEndPoint<DHTManagementCI>{
 		assert	inboundPortURI != null && !inboundPortURI.isEmpty() :
 				new PreconditionException(
 						"inboundPortURI != null && !inboundPortURI.isEmpty()");
+		
+
+		assert this.inboundPortURI.equals(inboundPortURI) : new PreconditionException("Different InboundPortURI");
 
 		DHTManagementInboundPort p =
-				new DHTManagementInboundPort(inboundPortURI, c);
+				new DHTManagementInboundPort(inboundPortURI, this.executorIndex, c);
 		p.publishPort();
 
 		// Postconditions checking
@@ -89,6 +99,10 @@ extends BCMEndPoint<DHTManagementCI>{
 				assert	invariants(this) : new InvariantException("invariants(this)");
 				
 				return p;
+	}
+
+	public void setExecutorServiceIndex(int dHTManagementExecutorServiceIndex) {
+		this.executorIndex = dHTManagementExecutorServiceIndex;
 	}
 
 }

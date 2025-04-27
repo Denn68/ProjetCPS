@@ -26,9 +26,11 @@ extends BCMEndPoint<DHTServicesCI>{
 		assert	inboundPortURI != null && !inboundPortURI.isEmpty() :
 				new PreconditionException(
 						"inboundPortURI != null && !inboundPortURI.isEmpty()");
+		
+		assert	this.inboundPortURI.equals(inboundPortURI) : new PreconditionException("inboundPortURI != this.inboundPortURI");
 
 		DHTInboundPort p =
-				new DHTInboundPort(this.inboundPortURI, c);
+				new DHTInboundPort(inboundPortURI, c);
 		p.publishPort();
 
 		// Postconditions checking
@@ -57,13 +59,15 @@ extends BCMEndPoint<DHTServicesCI>{
 			throws Exception {
 		// Preconditions checking
 				assert	c != null : new PreconditionException("c != null");
+				
+				assert	this.inboundPortURI.equals(inboundPortURI)  : new PreconditionException("inboundPortURI != this.inboundPortURI");
 
 				DHTOutboundPort p =
 						new DHTOutboundPort(c);
 				p.publishPort();
 				c.doPortConnection(
 						p.getPortURI(),
-						this.inboundPortURI,
+						inboundPortURI,
 						DHTConnector.class.getCanonicalName());
 
 				// Postconditions checking

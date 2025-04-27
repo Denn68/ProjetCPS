@@ -12,9 +12,12 @@ import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ResultReceptionCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.endpoints.ContentNodeCompositeEndPointI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.frontend.DHTServicesCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.management.DHTManagementCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.management.DHTManagementI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.management.LoadPolicyI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.CombinatorI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceResultReceptionCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ParallelMapReduceCI;
+import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ParallelMapReduceI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ProcessorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ReductorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
@@ -24,53 +27,86 @@ public class DHTManagementInboundPort
 extends AbstractInboundPort
 implements DHTManagementCI{
 	
-	public DHTManagementInboundPort(String uri,  ComponentI owner) throws Exception {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected final int executorIndex;
+
+	public DHTManagementInboundPort(String uri, int executorIndex, ComponentI owner) throws Exception {
 		super(uri, DHTManagementCI.class, owner);
+
+		assert	owner.validExecutorServiceIndex(executorIndex) ;
+
+		this.executorIndex = executorIndex ;
 	}
+	
+	public				DHTManagementInboundPort(
+			int executorIndex,
+			ComponentI owner
+			) throws Exception
+		{
+			super(DHTManagementCI.class, owner);
+
+			assert	owner.validExecutorServiceIndex(executorIndex) ;
+
+			this.executorIndex = executorIndex ;
+		}
 
 	@Override
 	public void initialiseContent(NodeContentI content) throws Exception {
-		// TODO Auto-generated method stub
-		
+		this.getOwner().handleRequest(this.executorIndex, owner -> {
+			((DHTManagementI) owner).initialiseContent(content);
+			return null;
+		});
 	}
 
 	@Override
 	public NodeStateI getCurrentState() throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		return this.getOwner().handleRequest(this.executorIndex, owner ->
+			((DHTManagementI) owner).getCurrentState()
+		);
 	}
 
 	@Override
 	public NodeContentI suppressNode() throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		return this.getOwner().handleRequest(this.executorIndex, owner ->
+			((DHTManagementI) owner).suppressNode()
+		);
 	}
 
 	@Override
 	public <CI extends ResultReceptionCI> void split(String computationURI, LoadPolicyI loadPolicy,
 			EndPointI<CI> caller) throws Exception {
-		// TODO Auto-generated method stub
-		
+		this.getOwner().handleRequest(this.executorIndex, owner -> {
+			((DHTManagementI) owner).split(computationURI, loadPolicy, caller);
+			return null;
+		});
 	}
 
 	@Override
 	public <CI extends ResultReceptionCI> void merge(String computationURI, LoadPolicyI loadPolicy,
 			EndPointI<CI> caller) throws Exception {
-		// TODO Auto-generated method stub
-		
+		this.getOwner().handleRequest(this.executorIndex, owner -> {
+			((DHTManagementI) owner).merge(computationURI, loadPolicy, caller);
+			return null;
+		});
 	}
 
 	@Override
 	public void computeChords(String computationURI, int numberOfChords) throws Exception {
-		// TODO Auto-generated method stub
-		
+		this.getOwner().handleRequest(this.executorIndex, owner -> {
+			((DHTManagementI) owner).computeChords(computationURI, numberOfChords);
+			return null;
+		});
 	}
 
 	@Override
 	public SerializablePair<ContentNodeCompositeEndPointI<ContentAccessCI, ParallelMapReduceCI, DHTManagementCI>, Integer> getChordInfo(
 			int offset) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		return this.getOwner().handleRequest(this.executorIndex, owner ->
+			((DHTManagementI) owner).getChordInfo(offset)
+		);
 	}
 
 }

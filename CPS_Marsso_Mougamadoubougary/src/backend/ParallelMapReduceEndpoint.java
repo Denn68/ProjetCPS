@@ -4,7 +4,6 @@ import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.AbstractPort;
 import fr.sorbonne_u.components.endpoints.BCMEndPoint;
 import fr.sorbonne_u.components.ports.AbstractInboundPort;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.MapReduceCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ParallelMapReduceCI;
 import fr.sorbonne_u.exceptions.ImplementationInvariantException;
 import fr.sorbonne_u.exceptions.InvariantException;
@@ -13,16 +12,23 @@ import fr.sorbonne_u.exceptions.PreconditionException;
 
 public class ParallelMapReduceEndpoint 
 extends BCMEndPoint<ParallelMapReduceCI>{
+	
+	public ParallelMapReduceEndpoint(String inboundPortURI, int executorServiceIndex) {
+		super(ParallelMapReduceCI.class, ParallelMapReduceCI.class, inboundPortURI);
+		this.executorIndex = executorServiceIndex;
+	}
 
 	public ParallelMapReduceEndpoint() {
 		super(ParallelMapReduceCI.class, ParallelMapReduceCI.class);
 	}
+	
+	
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private int executorServiceIndex;
+	private int executorIndex;
 
 	@Override
 	protected AbstractInboundPort makeInboundPort(AbstractComponent c, String inboundPortURI) throws Exception {
@@ -31,9 +37,11 @@ extends BCMEndPoint<ParallelMapReduceCI>{
 		assert	inboundPortURI != null && !inboundPortURI.isEmpty() :
 				new PreconditionException(
 						"inboundPortURI != null && !inboundPortURI.isEmpty()");
+		
+		assert this.inboundPortURI.equals(inboundPortURI) : new PreconditionException("Different InboundPortURI");
 
 		ParallelMapReduceInboundPort p =
-				new ParallelMapReduceInboundPort(inboundPortURI, this.executorServiceIndex, c);
+				new ParallelMapReduceInboundPort(inboundPortURI, this.executorIndex, c);
 		p.publishPort();
 
 		// Postconditions checking
@@ -96,7 +104,7 @@ extends BCMEndPoint<ParallelMapReduceCI>{
 	}
 	
 	public void setExecutorServiceIndex(int executorServiceIndex) {
-		this.executorServiceIndex = executorServiceIndex;
+		this.executorIndex = executorServiceIndex;
 	}
 
 }

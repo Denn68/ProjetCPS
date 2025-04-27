@@ -22,6 +22,12 @@ implements ParallelMapReduceCI{
 		super(ParallelMapReduceCI.class, owner);
 	}
 	
+	public ParallelMapReduceOutboundPort(String uri, ComponentI owner) throws Exception {
+		super(uri, ParallelMapReduceCI.class, owner);
+
+		assert uri != null && owner != null;
+	}
+	
 	protected			ParallelMapReduceOutboundPort(
 			Class<? extends RequiredCI> implementedInterface,
 			ComponentI owner

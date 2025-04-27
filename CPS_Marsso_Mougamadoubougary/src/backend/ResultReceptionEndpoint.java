@@ -30,6 +30,8 @@ extends BCMEndPoint<ResultReceptionCI>{
 		assert	inboundPortURI != null && !inboundPortURI.isEmpty() :
 				new PreconditionException(
 						"inboundPortURI != null && !inboundPortURI.isEmpty()");
+		
+		assert	this.inboundPortURI.equals(inboundPortURI)  : new PreconditionException("inboundPortURI != this.inboundPortURI");
 
 		ResultReceptionInboundPort p =
 				new ResultReceptionInboundPort(inboundPortURI, this.executorServiceIndex, c);

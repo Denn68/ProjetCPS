@@ -17,6 +17,14 @@ implements DHTManagementCI{
 
 	public DHTManagementOutboundPort(ComponentI owner) throws Exception {
 		super(DHTManagementCI.class, owner);
+		
+		assert owner != null;
+	}
+	
+	public DHTManagementOutboundPort(String uri, ComponentI owner) throws Exception {
+		super(uri, DHTManagementCI.class, owner);
+
+		assert uri != null && owner != null;
 	}
 
 	private static final long serialVersionUID = 1L;
