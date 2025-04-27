@@ -8,46 +8,51 @@ import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ContentKeyI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.content.ResultReceptionCI;
 
 public class ContentAccessConnector 
-extends AbstractConnector
-implements ContentAccessCI{
-	@Override
-	public ContentDataI getSync(String computationURI, ContentKeyI key) throws Exception {
-		return ((ContentAccessCI)this.offering).getSync(computationURI, key);
-	}
+    extends AbstractConnector 
+    implements ContentAccessCI {
 
-	@Override
-	public ContentDataI putSync(String computationURI, ContentKeyI key, ContentDataI value) throws Exception {
-		return ((ContentAccessCI)this.offering).putSync(computationURI, key, value);
-	}
+    // Récupère un contenu de façon synchrone
+    @Override
+    public ContentDataI getSync(String computationUri, ContentKeyI key) throws Exception {
+        return ((ContentAccessCI) this.offering).getSync(computationUri, key);
+    }
 
-	@Override
-	public ContentDataI removeSync(String computationURI, ContentKeyI key) throws Exception {
-		return ((ContentAccessCI)this.offering).removeSync(computationURI, key);
-	}
+    // Insère un contenu de façon synchrone
+    @Override
+    public ContentDataI putSync(String computationUri, ContentKeyI key, ContentDataI value) throws Exception {
+        return ((ContentAccessCI) this.offering).putSync(computationUri, key, value);
+    }
 
-	@Override
-	public void clearComputation(String computationURI) throws Exception {
-		((ContentAccessCI)this.offering).clearComputation(computationURI);
-	}
+    // Supprime un contenu de façon synchrone
+    @Override
+    public ContentDataI removeSync(String computationUri, ContentKeyI key) throws Exception {
+        return ((ContentAccessCI) this.offering).removeSync(computationUri, key);
+    }
 
-	@Override
-	public <I extends ResultReceptionCI> void get(String computationURI, ContentKeyI key, EndPointI<I> caller)
-			throws Exception {
-		((ContentAccessCI)this.offering).get(computationURI, key, caller);
-		
-	}
+    // Efface les données liées à un calcul
+    @Override
+    public void clearComputation(String computationUri) throws Exception {
+        ((ContentAccessCI) this.offering).clearComputation(computationUri);
+    }
 
-	@Override
-	public <I extends ResultReceptionCI> void put(String computationURI, ContentKeyI key, ContentDataI value,
-			EndPointI<I> caller) throws Exception {
-		((ContentAccessCI)this.offering).put(computationURI, key, value, caller);
-		
-	}
+    // Récupère un contenu de façon asynchrone
+    @Override
+    public <I extends ResultReceptionCI> void get(String computationUri, ContentKeyI key, EndPointI<I> caller)
+            throws Exception {
+        ((ContentAccessCI) this.offering).get(computationUri, key, caller);
+    }
 
-	@Override
-	public <I extends ResultReceptionCI> void remove(String computationURI, ContentKeyI key, EndPointI<I> caller)
-			throws Exception {
-		((ContentAccessCI)this.offering).remove(computationURI, key, caller);
-		
-	}
+    // Insère un contenu de façon asynchrone
+    @Override
+    public <I extends ResultReceptionCI> void put(String computationUri, ContentKeyI key, ContentDataI value,
+            EndPointI<I> caller) throws Exception {
+        ((ContentAccessCI) this.offering).put(computationUri, key, value, caller);
+    }
+
+    // Supprime un contenu de façon asynchrone
+    @Override
+    public <I extends ResultReceptionCI> void remove(String computationUri, ContentKeyI key, EndPointI<I> caller)
+            throws Exception {
+        ((ContentAccessCI) this.offering).remove(computationUri, key, caller);
+    }
 }

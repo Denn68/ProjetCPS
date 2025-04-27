@@ -10,91 +10,69 @@ import fr.sorbonne_u.exceptions.InvariantException;
 import fr.sorbonne_u.exceptions.PostconditionException;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
-public class MapReduceEndpoint 
-extends BCMEndPoint<MapReduceCI>{
+public class MapReduceEndpoint extends BCMEndPoint<MapReduceCI> {
 
-	public MapReduceEndpoint() {
-		super(MapReduceCI.class, MapReduceCI.class);
-	}
+    private static final long serialVersionUID = 1L;
+    private int executorServiceIndex;
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private int executorServiceIndex;
+    // Constructeur du MapReduceEndpoint
+    public MapReduceEndpoint() {
+        super(MapReduceCI.class, MapReduceCI.class);
+    }
 
-	@Override
-	protected AbstractInboundPort makeInboundPort(AbstractComponent c, String inboundPortURI) throws Exception {
-		// Preconditions checking
-		assert	c != null : new PreconditionException("c != null");
-		assert	inboundPortURI != null && !inboundPortURI.isEmpty() :
-				new PreconditionException(
-						"inboundPortURI != null && !inboundPortURI.isEmpty()");
+    // Crée et publie l'inbound port pour MapReduce
+    @Override
+    protected AbstractInboundPort makeInboundPort(AbstractComponent component, String inboundPortUri) throws Exception {
+        assert component != null : new PreconditionException("component != null");
+        assert inboundPortUri != null && !inboundPortUri.isEmpty() :
+                new PreconditionException("inboundPortUri != null && !inboundPortUri.isEmpty()");
 
-		MapReduceInboundPort p =
-				new MapReduceInboundPort(this.inboundPortURI, this.executorServiceIndex, c);
-		p.publishPort();
+        MapReduceInboundPort port = new MapReduceInboundPort(this.inboundPortURI, this.executorServiceIndex, component);
+        port.publishPort();
 
-		// Postconditions checking
-		assert	p != null && p.isPublished() :
-				new PostconditionException(
-						"return != null && return.isPublished()");
-		assert	((AbstractPort)p).getPortURI().equals(inboundPortURI) :
-				new PostconditionException(
-						"((AbstractPort)return).getPortURI().equals(inboundPortURI)");
-		assert	getServerSideInterface().isAssignableFrom(p.getClass()) :
-				new PostconditionException(
-						"getOfferedComponentInterface()."
-						+ "isAssignableFrom(return.getClass())");
-		// Invariant checking
-		assert	MapReduceEndpoint.implementationInvariants(this) :
-				new ImplementationInvariantException(
-						"DHTEndpoint.implementationInvariants(this)");
-		assert	MapReduceEndpoint.invariants(this) :
-				new InvariantException("DHTEndpoint.invariants(this)");
-		
-		return p;
-	}
+        assert port != null && port.isPublished() :
+                new PostconditionException("port != null && port.isPublished()");
+        assert ((AbstractPort) port).getPortURI().equals(inboundPortUri) :
+                new PostconditionException("port URI mismatch after creation");
+        assert getServerSideInterface().isAssignableFrom(port.getClass()) :
+                new PostconditionException("port class not assignable to server-side interface");
+        assert MapReduceEndpoint.implementationInvariants(this) :
+                new ImplementationInvariantException("MapReduceEndpoint.implementationInvariants(this)");
+        assert MapReduceEndpoint.invariants(this) :
+                new InvariantException("MapReduceEndpoint.invariants(this)");
 
-	@Override
-	protected MapReduceCI makeOutboundPort(AbstractComponent c, String inboundPortURI)
-			throws Exception {
-		// Preconditions checking
-				assert	c != null : new PreconditionException("c != null");
+        return port;
+    }
 
-				MapReduceOutboundPort p =
-						new MapReduceOutboundPort(c);
-				p.publishPort();
-				c.doPortConnection(
-						p.getPortURI(),
-						this.inboundPortURI,
-						MapReduceConnector.class.getCanonicalName());
+    // Crée et connecte l'outbound port pour MapReduce
+    @Override
+    protected MapReduceCI makeOutboundPort(AbstractComponent component, String inboundPortUri) throws Exception {
+        assert component != null : new PreconditionException("component != null");
 
-				// Postconditions checking
-				assert	p != null && p.isPublished() && p.connected() :
-						new PostconditionException(
-								"return != null && return.isPublished() && "
-								+ "return.connected()");
-				assert	((AbstractPort)p).getServerPortURI().equals(getInboundPortURI()) :
-						new PostconditionException(
-								"((AbstractPort)return).getServerPortURI()."
-								+ "equals(getInboundPortURI())");
-				assert	getClientSideInterface().isAssignableFrom(p.getClass()) :
-						new PostconditionException(
-								"getImplementedInterface().isAssignableFrom("
-								+ "return.getClass())");
-				
-				// Invariant checking
-				assert	implementationInvariants(this) :
-						new ImplementationInvariantException(
-								"implementationInvariants(this)");
-				assert	invariants(this) : new InvariantException("invariants(this)");
-				
-				return p;
-	}
-	
-	public void setExecutorServiceIndex(int executorServiceIndex) {
-		this.executorServiceIndex = executorServiceIndex;
-	}
+        MapReduceOutboundPort port = new MapReduceOutboundPort(component);
+        port.publishPort();
+        component.doPortConnection(
+            port.getPortURI(),
+            this.inboundPortURI,
+            MapReduceConnector.class.getCanonicalName()
+        );
 
+        assert port != null && port.isPublished() && port.connected() :
+                new PostconditionException("port != null && port.isPublished() && port.connected()");
+        assert ((AbstractPort) port).getServerPortURI().equals(getInboundPortURI()) :
+                new PostconditionException("server port URI mismatch after connection");
+        assert getClientSideInterface().isAssignableFrom(port.getClass()) :
+                new PostconditionException("port class not assignable to client-side interface");
+        assert implementationInvariants(this) :
+                new ImplementationInvariantException("implementationInvariants(this)");
+        assert invariants(this) :
+                new InvariantException("invariants(this)");
+
+        return port;
+    }
+
+    // Définit l'index du service d'exécution
+    public void setExecutorServiceIndex(int executorServiceIndex) {
+        this.executorServiceIndex = executorServiceIndex;
+    }
 }

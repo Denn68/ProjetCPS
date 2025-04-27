@@ -10,101 +10,69 @@ import fr.sorbonne_u.exceptions.InvariantException;
 import fr.sorbonne_u.exceptions.PostconditionException;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
-public class ParallelMapReduceEndpoint 
-extends BCMEndPoint<ParallelMapReduceCI>{
-	
-	public ParallelMapReduceEndpoint(String inboundPortURI, int executorServiceIndex) {
-		super(ParallelMapReduceCI.class, ParallelMapReduceCI.class, inboundPortURI);
-		this.executorIndex = executorServiceIndex;
-	}
+public class ParallelMapReduceEndpoint extends BCMEndPoint<ParallelMapReduceCI> {
 
-	public ParallelMapReduceEndpoint() {
-		super(ParallelMapReduceCI.class, ParallelMapReduceCI.class);
-	}
-	
-	
+    private static final long serialVersionUID = 1L;
+    private int executorIndex;
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private int executorIndex;
+    // Constructeur avec inboundPortURI et index de service d'exécution
+    public ParallelMapReduceEndpoint(String inboundPortUri, int executorServiceIndex) {
+        super(ParallelMapReduceCI.class, ParallelMapReduceCI.class, inboundPortUri);
+        this.executorIndex = executorServiceIndex;
+    }
 
-	@Override
-	protected AbstractInboundPort makeInboundPort(AbstractComponent c, String inboundPortURI) throws Exception {
-		// Preconditions checking
-		assert	c != null : new PreconditionException("c != null");
-		assert	inboundPortURI != null && !inboundPortURI.isEmpty() :
-				new PreconditionException(
-						"inboundPortURI != null && !inboundPortURI.isEmpty()");
-		
-		assert this.inboundPortURI.equals(inboundPortURI) : new PreconditionException("Different InboundPortURI");
+    // Constructeur par défaut
+    public ParallelMapReduceEndpoint() {
+        super(ParallelMapReduceCI.class, ParallelMapReduceCI.class);
+    }
 
-		ParallelMapReduceInboundPort p =
-				new ParallelMapReduceInboundPort(inboundPortURI, this.executorIndex, c);
-		p.publishPort();
+    // Crée et publie l'inbound port pour le traitement parallèle
+    @Override
+    protected AbstractInboundPort makeInboundPort(AbstractComponent component, String inboundPortUri) throws Exception {
+        assert component != null : new PreconditionException("component != null");
+        assert inboundPortUri != null && !inboundPortUri.isEmpty() : new PreconditionException("inboundPortUri non valide");
+        assert this.inboundPortURI.equals(inboundPortUri) : new PreconditionException("Different InboundPortURI");
 
-		// Postconditions checking
-		assert	p != null && p.isPublished() :
-				new PostconditionException(
-						"return != null && return.isPublished()");
-		assert	((AbstractPort)p).getPortURI().equals(inboundPortURI) :
-				new PostconditionException(
-						"((AbstractPort)return).getPortURI().equals(inboundPortURI)");
-		assert	getServerSideInterface().isAssignableFrom(p.getClass()) :
-				new PostconditionException(
-						"getOfferedComponentInterface()."
-						+ "isAssignableFrom(return.getClass())");
-		// Invariant checking
-		assert	ParallelMapReduceEndpoint.implementationInvariants(this) :
-				new ImplementationInvariantException(
-						"ParallelMapReduceEndpoint.implementationInvariants(this)");
-		assert	ParallelMapReduceEndpoint.invariants(this) :
-				new InvariantException("ParallelMapReduceEndpoint.invariants(this)");
-		
-		return p;
-	}
+        ParallelMapReduceInboundPort port = new ParallelMapReduceInboundPort(inboundPortUri, this.executorIndex, component);
+        port.publishPort();
 
-	@Override
-	protected ParallelMapReduceCI makeOutboundPort(AbstractComponent c, String inboundPortURI)
-			throws Exception {
-		// Preconditions checking
-				assert	c != null : new PreconditionException("c != null");
-				assert this.inboundPortURI.equals(inboundPortURI) : new PreconditionException("Different InboundPortURI");
+        assert port != null && port.isPublished() : new PostconditionException("port non publié après création");
+        assert ((AbstractPort) port).getPortURI().equals(inboundPortUri) : new PostconditionException("URI inbound port incorrect");
+        assert getServerSideInterface().isAssignableFrom(port.getClass()) : new PostconditionException("Type du port incorrect");
+        assert ParallelMapReduceEndpoint.implementationInvariants(this) : new ImplementationInvariantException("invariants non respectés");
+        assert ParallelMapReduceEndpoint.invariants(this) : new InvariantException("invariants non respectés");
 
-				ParallelMapReduceOutboundPort p =
-						new ParallelMapReduceOutboundPort(c);
-				p.publishPort();
-				c.doPortConnection(
-						p.getPortURI(),
-						inboundPortURI,
-						ParallelMapReduceConnector.class.getCanonicalName());
+        return port;
+    }
 
-				// Postconditions checking
-				assert	p != null && p.isPublished() && p.connected() :
-						new PostconditionException(
-								"return != null && return.isPublished() && "
-								+ "return.connected()");
-				assert	((AbstractPort)p).getServerPortURI().equals(getInboundPortURI()) :
-						new PostconditionException(
-								"((AbstractPort)return).getServerPortURI()."
-								+ "equals(getInboundPortURI())");
-				assert	getClientSideInterface().isAssignableFrom(p.getClass()) :
-						new PostconditionException(
-								"getImplementedInterface().isAssignableFrom("
-								+ "return.getClass())");
-				
-				// Invariant checking
-				assert	implementationInvariants(this) :
-						new ImplementationInvariantException(
-								"implementationInvariants(this)");
-				assert	invariants(this) : new InvariantException("invariants(this)");
-				
-				return p;
-	}
-	
-	public void setExecutorServiceIndex(int executorServiceIndex) {
-		this.executorIndex = executorServiceIndex;
-	}
+    // Crée et connecte l'outbound port pour le traitement parallèle
+    @Override
+    protected ParallelMapReduceCI makeOutboundPort(AbstractComponent component, String inboundPortUri) throws Exception {
+        assert component != null : new PreconditionException("component != null");
+        assert this.inboundPortURI.equals(inboundPortUri) : new PreconditionException("Different InboundPortURI");
 
+        ParallelMapReduceOutboundPort port = new ParallelMapReduceOutboundPort(component);
+        port.publishPort();
+        component.doPortConnection(
+            port.getPortURI(),
+            inboundPortUri,
+            ParallelMapReduceConnector.class.getCanonicalName()
+        );
+
+        assert port != null && port.isPublished() && port.connected() :
+            new PostconditionException("port non publié ou connecté après création");
+        assert ((AbstractPort) port).getServerPortURI().equals(getInboundPortURI()) :
+            new PostconditionException("ServerPortURI incorrect après connexion");
+        assert getClientSideInterface().isAssignableFrom(port.getClass()) :
+            new PostconditionException("Type du port outbound incorrect");
+        assert implementationInvariants(this) : new ImplementationInvariantException("invariants non respectés");
+        assert invariants(this) : new InvariantException("invariants non respectés");
+
+        return port;
+    }
+
+    // Définit l'index du service d'exécution
+    public void setExecutorServiceIndex(int executorServiceIndex) {
+        this.executorIndex = executorServiceIndex;
+    }
 }

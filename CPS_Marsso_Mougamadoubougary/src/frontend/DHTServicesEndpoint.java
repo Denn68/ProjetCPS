@@ -10,87 +10,49 @@ import fr.sorbonne_u.exceptions.InvariantException;
 import fr.sorbonne_u.exceptions.PostconditionException;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
-public class DHTServicesEndpoint 
-extends BCMEndPoint<DHTServicesCI>{
+public class DHTServicesEndpoint extends BCMEndPoint<DHTServicesCI> {
 
-	public DHTServicesEndpoint() {
-		super(DHTServicesCI.class, DHTServicesCI.class);
-	}
+    private static final long serialVersionUID = 1L;
 
-	private static final long serialVersionUID = 1L;
+    public DHTServicesEndpoint() {
+        super(DHTServicesCI.class, DHTServicesCI.class);
+    }
 
-	@Override
-	protected AbstractInboundPort makeInboundPort(AbstractComponent c, String inboundPortURI) throws Exception {
-		// Preconditions checking
-		assert	c != null : new PreconditionException("c != null");
-		assert	inboundPortURI != null && !inboundPortURI.isEmpty() :
-				new PreconditionException(
-						"inboundPortURI != null && !inboundPortURI.isEmpty()");
-		
-		assert	this.inboundPortURI.equals(inboundPortURI) : new PreconditionException("inboundPortURI != this.inboundPortURI");
+    @Override
+    protected AbstractInboundPort makeInboundPort(AbstractComponent component, String inboundPortURI) throws Exception {
+        assert component != null : new PreconditionException("component != null");
+        assert inboundPortURI != null && !inboundPortURI.isEmpty() : new PreconditionException("inboundPortURI != null && !inboundPortURI.isEmpty()");
+        assert this.inboundPortURI.equals(inboundPortURI) : new PreconditionException("inboundPortURI != this.inboundPortURI");
 
-		DHTInboundPort p =
-				new DHTInboundPort(inboundPortURI, c);
-		p.publishPort();
+        DHTInboundPort port = new DHTInboundPort(inboundPortURI, component);
+        port.publishPort();
 
-		// Postconditions checking
-		assert	p != null && p.isPublished() :
-				new PostconditionException(
-						"return != null && return.isPublished()");
-		assert	((AbstractPort)p).getPortURI().equals(inboundPortURI) :
-				new PostconditionException(
-						"((AbstractPort)return).getPortURI().equals(inboundPortURI)");
-		assert	getServerSideInterface().isAssignableFrom(p.getClass()) :
-				new PostconditionException(
-						"getOfferedComponentInterface()."
-						+ "isAssignableFrom(return.getClass())");
-		// Invariant checking
-		assert	DHTServicesEndpoint.implementationInvariants(this) :
-				new ImplementationInvariantException(
-						"DHTEndpoint.implementationInvariants(this)");
-		assert	DHTServicesEndpoint.invariants(this) :
-				new InvariantException("DHTEndpoint.invariants(this)");
-		
-		return p;
-	}
+        assert port != null && port.isPublished() : new PostconditionException("port != null && port.isPublished()");
+        assert ((AbstractPort) port).getPortURI().equals(inboundPortURI) : new PostconditionException("port URI mismatch");
+        assert getServerSideInterface().isAssignableFrom(port.getClass()) : new PostconditionException("incompatible server interface");
 
-	@Override
-	protected DHTServicesCI makeOutboundPort(AbstractComponent c, String inboundPortURI)
-			throws Exception {
-		// Preconditions checking
-				assert	c != null : new PreconditionException("c != null");
-				
-				assert	this.inboundPortURI.equals(inboundPortURI)  : new PreconditionException("inboundPortURI != this.inboundPortURI");
+        assert DHTServicesEndpoint.implementationInvariants(this) : new ImplementationInvariantException("implementationInvariants(this)");
+        assert DHTServicesEndpoint.invariants(this) : new InvariantException("invariants(this)");
 
-				DHTOutboundPort p =
-						new DHTOutboundPort(c);
-				p.publishPort();
-				c.doPortConnection(
-						p.getPortURI(),
-						inboundPortURI,
-						DHTConnector.class.getCanonicalName());
+        return port;
+    }
 
-				// Postconditions checking
-				assert	p != null && p.isPublished() && p.connected() :
-						new PostconditionException(
-								"return != null && return.isPublished() && "
-								+ "return.connected()");
-				assert	((AbstractPort)p).getServerPortURI().equals(getInboundPortURI()) :
-						new PostconditionException(
-								"((AbstractPort)return).getServerPortURI()."
-								+ "equals(getInboundPortURI())");
-				assert	getClientSideInterface().isAssignableFrom(p.getClass()) :
-						new PostconditionException(
-								"getImplementedInterface().isAssignableFrom("
-								+ "return.getClass())");
-				
-				// Invariant checking
-				assert	implementationInvariants(this) :
-						new ImplementationInvariantException(
-								"implementationInvariants(this)");
-				assert	invariants(this) : new InvariantException("invariants(this)");
-				
-				return p;
-	}
+    @Override
+    protected DHTServicesCI makeOutboundPort(AbstractComponent component, String inboundPortURI) throws Exception {
+        assert component != null : new PreconditionException("component != null");
+        assert this.inboundPortURI.equals(inboundPortURI) : new PreconditionException("inboundPortURI != this.inboundPortURI");
 
+        DHTOutboundPort port = new DHTOutboundPort(component);
+        port.publishPort();
+        component.doPortConnection(port.getPortURI(), inboundPortURI, DHTConnector.class.getCanonicalName());
+
+        assert port != null && port.isPublished() && port.connected() : new PostconditionException("port published and connected");
+        assert ((AbstractPort) port).getServerPortURI().equals(getInboundPortURI()) : new PostconditionException("server port URI mismatch");
+        assert getClientSideInterface().isAssignableFrom(port.getClass()) : new PostconditionException("incompatible client interface");
+
+        assert implementationInvariants(this) : new ImplementationInvariantException("implementationInvariants(this)");
+        assert invariants(this) : new InvariantException("invariants(this)");
+
+        return port;
+    }
 }

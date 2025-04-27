@@ -11,28 +11,36 @@ import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ProcessorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ReductorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
 
-public class DHTConnector 
-extends AbstractConnector
-implements DHTServicesCI{
 
-	@Override
-	public ContentDataI get(ContentKeyI key) throws Exception {
-		return ((DHTServicesCI)this.offering).get(key);
-	}
+public class DHTConnector extends AbstractConnector implements DHTServicesCI {
 
-	@Override
-	public ContentDataI put(ContentKeyI key, ContentDataI value) throws Exception {
-		return ((DHTServicesCI)this.offering).put(key, value);
-	}
+    @Override
+    public ContentDataI get(ContentKeyI key) throws Exception {
+        return this.getOffering().get(key);
+    }
 
-	@Override
-	public ContentDataI remove(ContentKeyI key) throws Exception {
-		return ((DHTServicesCI)this.offering).remove(key);
-	}
+    @Override
+    public ContentDataI put(ContentKeyI key, ContentDataI value) throws Exception {
+        return this.getOffering().put(key, value);
+    }
 
-	@Override
-	public <R extends Serializable, A extends Serializable> A mapReduce(SelectorI selector, ProcessorI<R> processor,
-			ReductorI<A, R> reductor, CombinatorI<A> combinator, A initialAcc) throws Exception {
-		return ((DHTServicesCI)this.offering).mapReduce(selector, processor, reductor, combinator, initialAcc);
-	}
+    @Override
+    public ContentDataI remove(ContentKeyI key) throws Exception {
+        return this.getOffering().remove(key);
+    }
+
+    @Override
+    public <R extends Serializable, A extends Serializable> A mapReduce(
+            SelectorI selector, ProcessorI<R> processor,
+            ReductorI<A, R> reductor, CombinatorI<A> combinator,
+            A initialAcc) throws Exception {
+        return this.getOffering().mapReduce(selector, processor, reductor, combinator, initialAcc);
+    }
+
+    /**
+     * Getter pour l'interface offerte.
+     */
+    private DHTServicesCI getOffering() {
+        return (DHTServicesCI) this.offering;
+    }
 }

@@ -4,105 +4,103 @@ import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.AbstractPort;
 import fr.sorbonne_u.components.endpoints.BCMEndPoint;
 import fr.sorbonne_u.components.ports.AbstractInboundPort;
-import fr.sorbonne_u.cps.dht_mapreduce.interfaces.frontend.DHTServicesCI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.management.DHTManagementCI;
 import fr.sorbonne_u.exceptions.ImplementationInvariantException;
 import fr.sorbonne_u.exceptions.InvariantException;
 import fr.sorbonne_u.exceptions.PostconditionException;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
-public class DHTManagementEndpoint 
-extends BCMEndPoint<DHTManagementCI>{
+public class DHTManagementEndpoint
+extends BCMEndPoint<DHTManagementCI> {
 
-	private int executorIndex;
+    private static final long serialVersionUID = 1L;
+    private int executorIndex;
 
-	public DHTManagementEndpoint() {
-		super(DHTManagementCI.class, DHTManagementCI.class);
-	}
-	
-	public DHTManagementEndpoint(String inboundPortURI, int executorServiceIndex) {
-		super(DHTManagementCI.class, DHTManagementCI.class, inboundPortURI);
-		this.executorIndex = executorServiceIndex;
-	}
+    // Constructeur sans URI initial
+    public DHTManagementEndpoint() {
+        super(DHTManagementCI.class, DHTManagementCI.class);
+    }
 
-	private static final long serialVersionUID = 1L;
+    // Constructeur avec URI et index d'exécuteur de service
+    public DHTManagementEndpoint(String inboundPortURI, int executorServiceIndex) {
+        super(DHTManagementCI.class, DHTManagementCI.class, inboundPortURI);
+        this.executorIndex = executorServiceIndex;
+    }
 
-	@Override
-	protected AbstractInboundPort makeInboundPort(AbstractComponent c, String inboundPortURI) throws Exception {
-		// Preconditions checking
-		assert	c != null : new PreconditionException("c != null");
-		assert	inboundPortURI != null && !inboundPortURI.isEmpty() :
-				new PreconditionException(
-						"inboundPortURI != null && !inboundPortURI.isEmpty()");
-		
+    /**
+     * Crée le port entrant (inbound) du composant.
+     */
+    @Override
+    protected AbstractInboundPort makeInboundPort(AbstractComponent component, String inboundPortURI) throws Exception {
+        // Preconditions
+        assert component != null : new PreconditionException("component != null");
+        assert inboundPortURI != null && !inboundPortURI.isEmpty() :
+            new PreconditionException("inboundPortURI != null && !inboundPortURI.isEmpty()");
+        assert this.inboundPortURI.equals(inboundPortURI) :
+            new PreconditionException("inboundPortURI must match this.inboundPortURI");
 
-		assert this.inboundPortURI.equals(inboundPortURI) : new PreconditionException("Different InboundPortURI");
+        DHTManagementInboundPort inboundPort = new DHTManagementInboundPort(inboundPortURI, this.executorIndex, component);
+        inboundPort.publishPort();
 
-		DHTManagementInboundPort p =
-				new DHTManagementInboundPort(inboundPortURI, this.executorIndex, c);
-		p.publishPort();
+        // Postconditions
+        assert inboundPort != null && inboundPort.isPublished() :
+            new PostconditionException("Inbound port must be created and published");
+        assert ((AbstractPort) inboundPort).getPortURI().equals(inboundPortURI) :
+            new PostconditionException("Inbound port URI mismatch");
+        assert getServerSideInterface().isAssignableFrom(inboundPort.getClass()) :
+            new PostconditionException("Inbound port does not implement the required server interface");
 
-		// Postconditions checking
-		assert	p != null && p.isPublished() :
-				new PostconditionException(
-						"return != null && return.isPublished()");
-		assert	((AbstractPort)p).getPortURI().equals(inboundPortURI) :
-				new PostconditionException(
-						"((AbstractPort)return).getPortURI().equals(inboundPortURI)");
-		assert	getServerSideInterface().isAssignableFrom(p.getClass()) :
-				new PostconditionException(
-						"getOfferedComponentInterface()."
-						+ "isAssignableFrom(return.getClass())");
-		// Invariant checking
-		assert	DHTManagementEndpoint.implementationInvariants(this) :
-				new ImplementationInvariantException(
-						"DHTManagementEndpoint.implementationInvariants(this)");
-		assert	DHTManagementEndpoint.invariants(this) :
-				new InvariantException("DHTManagementEndpoint.invariants(this)");
-		
-		return p;
-	}
+        // Invariant checking
+        assert DHTManagementEndpoint.implementationInvariants(this) :
+            new ImplementationInvariantException("DHTManagementEndpoint implementation invariant failed");
+        assert DHTManagementEndpoint.invariants(this) :
+            new InvariantException("DHTManagementEndpoint invariants failed");
 
-	@Override
-	protected DHTManagementCI makeOutboundPort(AbstractComponent c, String inboundPortURI)
-			throws Exception {
-		// Preconditions checking
-				assert	c != null : new PreconditionException("c != null");
-				assert this.inboundPortURI.equals(inboundPortURI) : new PreconditionException("Different InboundPortURI");
+        return inboundPort;
+    }
 
-				DHTManagementOutboundPort p =
-						new DHTManagementOutboundPort(c);
-				p.publishPort();
-				c.doPortConnection(
-						p.getPortURI(),
-						inboundPortURI,
-						DHTManagementConnector.class.getCanonicalName());
+    /**
+     * Crée le port sortant (outbound) du composant.
+     */
+    @Override
+    protected DHTManagementCI makeOutboundPort(AbstractComponent component, String inboundPortURI) throws Exception {
+        // Preconditions
+        assert component != null : new PreconditionException("component != null");
+        assert this.inboundPortURI.equals(inboundPortURI) :
+            new PreconditionException("inboundPortURI must match this.inboundPortURI");
 
-				// Postconditions checking
-				assert	p != null && p.isPublished() && p.connected() :
-						new PostconditionException(
-								"return != null && return.isPublished() && "
-								+ "return.connected()");
-				assert	((AbstractPort)p).getServerPortURI().equals(getInboundPortURI()) :
-						new PostconditionException(
-								"((AbstractPort)return).getServerPortURI()."
-								+ "equals(getInboundPortURI())");
-				assert	getClientSideInterface().isAssignableFrom(p.getClass()) :
-						new PostconditionException(
-								"getImplementedInterface().isAssignableFrom("
-								+ "return.getClass())");
-				
-				// Invariant checking
-				assert	implementationInvariants(this) :
-						new ImplementationInvariantException(
-								"implementationInvariants(this)");
-				assert	invariants(this) : new InvariantException("invariants(this)");
-				
-				return p;
-	}
+        DHTManagementOutboundPort outboundPort = new DHTManagementOutboundPort(component);
+        outboundPort.publishPort();
 
-	public void setExecutorServiceIndex(int dHTManagementExecutorServiceIndex) {
-		this.executorIndex = dHTManagementExecutorServiceIndex;
-	}
+        component.doPortConnection(
+            outboundPort.getPortURI(),
+            inboundPortURI,
+            DHTManagementConnector.class.getCanonicalName()
+        );
 
+        // Postconditions
+        assert outboundPort != null && outboundPort.isPublished() && outboundPort.connected() :
+            new PostconditionException("Outbound port must be published and connected");
+        assert ((AbstractPort) outboundPort).getServerPortURI().equals(getInboundPortURI()) :
+            new PostconditionException("Outbound port's server URI must match inbound URI");
+        assert getClientSideInterface().isAssignableFrom(outboundPort.getClass()) :
+            new PostconditionException("Outbound port does not implement the required client interface");
+
+        // Invariant checking
+        assert implementationInvariants(this) :
+            new ImplementationInvariantException("DHTManagementEndpoint implementation invariant failed");
+        assert invariants(this) :
+            new InvariantException("DHTManagementEndpoint invariants failed");
+
+        return outboundPort;
+    }
+
+    /**
+     * Modifie l'index du service d'exécution.
+     *
+     * @param executorServiceIndex Nouvel index
+     */
+    public void setExecutorServiceIndex(int executorServiceIndex) {
+        this.executorIndex = executorServiceIndex;
+    }
 }

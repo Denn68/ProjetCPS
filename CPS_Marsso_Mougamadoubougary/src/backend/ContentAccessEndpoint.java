@@ -10,92 +10,70 @@ import fr.sorbonne_u.exceptions.InvariantException;
 import fr.sorbonne_u.exceptions.PostconditionException;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
-public class ContentAccessEndpoint 
-extends BCMEndPoint<ContentAccessCI>{
+public class ContentAccessEndpoint extends BCMEndPoint<ContentAccessCI> {
 
-	public ContentAccessEndpoint() {
-		super(ContentAccessCI.class, ContentAccessCI.class);
-	}
+    private static final long serialVersionUID = 1L;
+    private int executorServiceIndex;
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private int executorServiceIndex;
+    // Constructeur du ContentAccessEndpoint
+    public ContentAccessEndpoint() {
+        super(ContentAccessCI.class, ContentAccessCI.class);
+    }
 
-	@Override
-	protected AbstractInboundPort makeInboundPort(AbstractComponent c, String inboundPortURI) throws Exception {
-		// Preconditions checking
-		assert	c != null : new PreconditionException("c != null");
-		assert	inboundPortURI != null && !inboundPortURI.isEmpty() :
-				new PreconditionException(
-						"inboundPortURI != null && !inboundPortURI.isEmpty()");
+    // Crée et publie l'inbound port pour le contenu
+    @Override
+    protected AbstractInboundPort makeInboundPort(AbstractComponent component, String inboundPortUri) throws Exception {
+        assert component != null : new PreconditionException("component != null");
+        assert inboundPortUri != null && !inboundPortUri.isEmpty() :
+                new PreconditionException("inboundPortUri != null && !inboundPortUri.isEmpty()");
 
-		ContentAccessInboundPort p =
-				new ContentAccessInboundPort(inboundPortURI, this.executorServiceIndex, c);
-		p.publishPort();
+        ContentAccessInboundPort port = new ContentAccessInboundPort(inboundPortUri, this.executorServiceIndex, component);
+        port.publishPort();
 
-		// Postconditions checking
-		assert	p != null && p.isPublished() :
-				new PostconditionException(
-						"return != null && return.isPublished()");
-		assert	((AbstractPort)p).getPortURI().equals(inboundPortURI) :
-				new PostconditionException(
-						"((AbstractPort)return).getPortURI().equals(inboundPortURI)");
-		assert	getServerSideInterface().isAssignableFrom(p.getClass()) :
-				new PostconditionException(
-						"getOfferedComponentInterface()."
-						+ "isAssignableFrom(return.getClass())");
-		// Invariant checking
-		assert	ContentAccessEndpoint.implementationInvariants(this) :
-				new ImplementationInvariantException(
-						"ContentAccessEndpoint.implementationInvariants(this)");
-		assert	ContentAccessEndpoint.invariants(this) :
-				new InvariantException("ContentAccessEndpoint.invariants(this)");
-		
-		return p;
-	}
+        assert port != null && port.isPublished() :
+                new PostconditionException("port != null && port.isPublished()");
+        assert ((AbstractPort) port).getPortURI().equals(inboundPortUri) :
+                new PostconditionException("((AbstractPort) port).getPortURI().equals(inboundPortUri)");
+        assert getServerSideInterface().isAssignableFrom(port.getClass()) :
+                new PostconditionException("getServerSideInterface().isAssignableFrom(port.getClass())");
+        assert ContentAccessEndpoint.implementationInvariants(this) :
+                new ImplementationInvariantException("ContentAccessEndpoint.implementationInvariants(this)");
+        assert ContentAccessEndpoint.invariants(this) :
+                new InvariantException("ContentAccessEndpoint.invariants(this)");
 
-	@Override
-	protected ContentAccessCI makeOutboundPort(AbstractComponent c, String inboundPortURI)
-			throws Exception {
-		// Preconditions checking
-				assert	c != null : new PreconditionException("c != null");
-				assert this.inboundPortURI.equals(inboundPortURI) : new PreconditionException("Different InboundPortURI");
+        return port;
+    }
 
-				ContentAccessOutboundPort p =
-						new ContentAccessOutboundPort(c);
-				p.publishPort();
-				c.doPortConnection(
-						p.getPortURI(),
-						inboundPortURI,
-						ContentAccessConnector.class.getCanonicalName());
+    // Crée et connecte l'outbound port au serveur
+    @Override
+    protected ContentAccessCI makeOutboundPort(AbstractComponent component, String inboundPortUri) throws Exception {
+        assert component != null : new PreconditionException("component != null");
+        assert this.inboundPortURI.equals(inboundPortUri) : new PreconditionException("Different inboundPortUri");
 
-				// Postconditions checking
-				assert	p != null && p.isPublished() && p.connected() :
-						new PostconditionException(
-								"return != null && return.isPublished() && "
-								+ "return.connected()");
-				assert	((AbstractPort)p).getServerPortURI().equals(getInboundPortURI()) :
-						new PostconditionException(
-								"((AbstractPort)return).getServerPortURI()."
-								+ "equals(getInboundPortURI())");
-				assert	getClientSideInterface().isAssignableFrom(p.getClass()) :
-						new PostconditionException(
-								"getImplementedInterface().isAssignableFrom("
-								+ "return.getClass())");
-				
-				// Invariant checking
-				assert	implementationInvariants(this) :
-						new ImplementationInvariantException(
-								"implementationInvariants(this)");
-				assert	invariants(this) : new InvariantException("invariants(this)");
-				
-				return p;
-	}
-	
-	public void setExecutorServiceIndex(int executorServiceIndex) {
-		this.executorServiceIndex = executorServiceIndex;
-	}
+        ContentAccessOutboundPort port = new ContentAccessOutboundPort(component);
+        port.publishPort();
+        component.doPortConnection(
+            port.getPortURI(),
+            inboundPortUri,
+            ContentAccessConnector.class.getCanonicalName()
+        );
 
+        assert port != null && port.isPublished() && port.connected() :
+                new PostconditionException("port != null && port.isPublished() && port.connected()");
+        assert ((AbstractPort) port).getServerPortURI().equals(getInboundPortURI()) :
+                new PostconditionException("((AbstractPort) port).getServerPortURI().equals(getInboundPortURI())");
+        assert getClientSideInterface().isAssignableFrom(port.getClass()) :
+                new PostconditionException("getClientSideInterface().isAssignableFrom(port.getClass())");
+        assert implementationInvariants(this) :
+                new ImplementationInvariantException("implementationInvariants(this)");
+        assert invariants(this) :
+                new InvariantException("invariants(this)");
+
+        return port;
+    }
+
+    // Définit l'index du service d'exécution
+    public void setExecutorServiceIndex(int executorServiceIndex) {
+        this.executorServiceIndex = executorServiceIndex;
+    }
 }

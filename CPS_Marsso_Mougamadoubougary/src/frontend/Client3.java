@@ -24,175 +24,155 @@ import fr.sorbonne_u.utils.aclocks.ClocksServerOutboundPort;
 import test.CVM;
 
 @RequiredInterfaces(required = { DHTServicesCI.class, ClocksServerCI.class })
-public class Client3 
-extends AbstractComponent
-{
+public class Client3 extends AbstractComponent {
 
-	protected Client3(int nbThreads, int nbSchedulableThreads, DHTServicesEndpoint dhtEndPointClient) {
-		super(nbThreads, nbSchedulableThreads);
-		this.dhtEndPointClient = dhtEndPointClient;
-		
-		try {
-			clk_p = new ClocksServerOutboundPort(this);
-			clk_p.publishPort();
-			
-			this.doPortConnection(
-				clk_p.getPortURI(),
-				ClocksServer.STANDARD_INBOUNDPORT_URI,
-				ClocksServerConnector.class.getCanonicalName());
-			
-			dhtClock = clk_p.getClock(CVM.TEST_CLOCK_URI);
-			this.doPortDisconnection(clk_p.getPortURI());
-			clk_p.unpublishPort();
-			clk_p.destroyPort();
-			if (dhtClock.startTimeNotReached()) {
-				dhtClock.waitUntilStart();
-			}
-			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	protected AcceleratedClock dhtClock;
-	ClocksServerOutboundPort clk_p;
-	
-	DHTServicesEndpoint dhtEndPointClient;
-	@Override
-	public void start() throws ComponentStartException {
-		super.start();
-		
-		try {
-			if(!this.dhtEndPointClient.clientSideInitialised()) {
-				this.dhtEndPointClient.initialiseClientSide(this);
-			} 
-		} catch (Exception e) {
-	        throw new ComponentStartException("Erreur lors de l'initialisation du client", e);
-	    }
-	}
-	
-	public ContentDataI get(ContentKeyI key) throws Exception {
-		return this.dhtEndPointClient.getClientSideReference().get(key);
-	}
+    // Constantes explicatives pour supprimer les magic numbers
+    private static final long TASK_EXECUTION_DELAY_SECONDS = 120;
+    private static final int MAP_REDUCE_INITIAL_VALUE = 10;
+    private static final int EXPECTED_MAP_REDUCE_RESULT = 472;
 
-	public <R extends Serializable, A extends Serializable> A mapReduce(SelectorI selector, ProcessorI<R> processor,
-			ReductorI<A, R> reductor, CombinatorI<A> combinator, A identity) throws Exception {
-			return this.dhtEndPointClient.getClientSideReference().mapReduce(selector, processor, reductor, combinator, identity);
-	}
+    protected AcceleratedClock dhtClock;
+    protected ClocksServerOutboundPort clockPort;
+    protected DHTServicesEndpoint dhtEndPointClient;
 
-	public ContentDataI put(ContentKeyI key, ContentDataI data) throws Exception {
-		return this.dhtEndPointClient.getClientSideReference().put(key, data);
-	}
+    // Constructeur du composant Client3
+    protected Client3(int nbThreads, int nbSchedulableThreads, DHTServicesEndpoint dhtEndPointClient) {
+        super(nbThreads, nbSchedulableThreads);
+        this.dhtEndPointClient = dhtEndPointClient;
 
-	public ContentDataI remove(ContentKeyI key) throws Exception {
-		return this.dhtEndPointClient.getClientSideReference().remove(key);
-	}
-	
-	@Override
-    public  void execute() throws Exception {
-		
-		Instant i0 = dhtClock.getStartInstant();
-		Instant i1 = i0.plusSeconds(120);
+        try {
+            // Initialisation du port d'horloge
+            this.clockPort = new ClocksServerOutboundPort(this);
+            clockPort.publishPort();
 
-		long delay = dhtClock.nanoDelayUntilInstant(i1);
-		
-        this.scheduleTask(
-        	new AbstractComponent.AbstractTask() {
-	            @Override
-	            public void run() {
-	                try {                	
-	                    System.out.println("Client3 " + reflectionInboundPortURI);
-	                    
-	                    String attAGE = "AGE";
-	                	String attNOM = "NOM";
-	                	
-	                    String P1_nom = "P1";
-	                    int P1_age = 56;
-	                    ContentKey key1 = new ContentKey(21);
-	            		Personne data1 = new Personne(P1_nom, P1_age);
-	            		
-	            		String P2_nom = "P2";
-	            		int P2_age = 35;
-	            		ContentKey key2 = new ContentKey(22);
-	            		Personne data2 = new Personne(P2_nom, P2_age);
-	
-	            		String P3_nom = "P3";
-	            		int P3_age = 2;		
-	            		ContentKey key3 = new ContentKey(250);
-	            		Personne data3 = new Personne(P3_nom, P3_age);
-	
-	            		String P4_nom = "P4";
-	            		int P4_age = 23;
-	            		ContentKey key4 = new ContentKey(1234);
-	            		Personne data4 = new Personne(P4_nom, P4_age);
-	
-	            		String P5_nom = "P5";
-	            		int P5_age = 13;
-	            		ContentKey key5 = new ContentKey(1999);
-	            		Personne data5 = new Personne(P5_nom, P5_age);
-	        			
-	            		ContentDataI oldPerson1 = ((Client3) this.getTaskOwner()).put(key1, data1);
-	        			System.out.println(((Client3) this.getTaskOwner()).get(key1).getValue(attNOM));
-	                    System.out.println(((Client3) this.getTaskOwner()).get(key1).getValue(attAGE));
-	        			assert oldPerson1 == null : "Type incorrect";
-	        			assert ((Client3) this.getTaskOwner()).get(key1).getValue(attNOM).equals(P1_nom) : "Nom incorrect";
-	        			assert (((Client3) this.getTaskOwner()).get(key1).getValue(attAGE)).equals(P1_age) : "Age incorrect";
-	        		
-	        			ContentDataI oldPerson2 = ((Client3) this.getTaskOwner()).put(key2, data2);
-	        			System.out.println(((Client3) this.getTaskOwner()).get(key2).getValue(attNOM));
-	                    System.out.println(((Client3) this.getTaskOwner()).get(key2).getValue(attAGE));
-	        			assert oldPerson2 == null : "Type incorrect";
-	        			assert ((Client3) this.getTaskOwner()).get(key2).getValue(attNOM).equals(P2_nom) : "Nom incorrect";
-	        			assert ((Client3) this.getTaskOwner()).get(key2).getValue(attAGE).equals(P2_age) : "Age incorrect";
-	        			
-	        			ContentDataI oldPerson3 = ((Client3) this.getTaskOwner()).put(key3, data3);
-	        			System.out.println(((Client3) this.getTaskOwner()).get(key3).getValue(attNOM));
-	                    System.out.println(((Client3) this.getTaskOwner()).get(key3).getValue(attAGE));
-	        			assert oldPerson3 == null : "Type incorrect";
-	        			assert ((Client3) this.getTaskOwner()).get(key3).getValue(attNOM).equals(P3_nom) : "Nom incorrect";
-	        			assert ((Client3) this.getTaskOwner()).get(key3).getValue(attAGE).equals(P3_age) : "Age incorrect";
-	        			
-	        			ContentDataI oldPerson4 = ((Client3) this.getTaskOwner()).put(key4, data4);
-	        			System.out.println(((Client3) this.getTaskOwner()).get(key4).getValue(attNOM));
-	                    System.out.println(((Client3) this.getTaskOwner()).get(key4).getValue(attAGE));
-	        			assert oldPerson4 == null : "Type incorrect";
-	        			assert ((Client3) this.getTaskOwner()).get(key4).getValue(attNOM).equals(P4_nom) : "Nom incorrect";
-	        			assert ((Client3) this.getTaskOwner()).get(key4).getValue(attAGE).equals(P4_age) : "Age incorrect";
-	        			
-	        			ContentDataI oldPerson5 = ((Client3) this.getTaskOwner()).put(key5, data5);
-	        			System.out.println(((Client3) this.getTaskOwner()).get(key5).getValue(attNOM));
-	                    System.out.println(((Client3) this.getTaskOwner()).get(key5).getValue(attAGE));
-	        			assert oldPerson5 == null : "Type incorrect";
-	        			assert ((Client3) this.getTaskOwner()).get(key5).getValue(attNOM).equals(P5_nom) : "Nom incorrect";
-	        			assert ((Client3) this.getTaskOwner()).get(key5).getValue(attAGE).equals(P5_age) : "Age incorrect";
-	
-	        		
-	        			int res = ((Client3) this.getTaskOwner()).mapReduce(
-	        					(item) -> ((int) item.getValue(attAGE)) % 2 == 0,
-	        					(item) -> new Personne(((String)item.getValue(attNOM)), ((int) item.getValue(attAGE))*2),
-	        					(accumulator, i) -> accumulator + ((int)i.getValue(attAGE)),
-	        					(a1, a2) -> a1 + a2,
-	        					10);
-	        			
-	        			System.out.println("MapReduce : " + res);
-	        			assert res == 472 : "MapReduce incorrect";
-	        			System.out.println("No problem");
-	                } catch (Exception e) {
-	                    e.printStackTrace();
-	                }
-	            }
+            this.doPortConnection(
+                clockPort.getPortURI(),
+                ClocksServer.STANDARD_INBOUNDPORT_URI,
+                ClocksServerConnector.class.getCanonicalName()
+            );
+
+            this.dhtClock = clockPort.getClock(CVM.TEST_CLOCK_URI);
+
+            this.doPortDisconnection(clockPort.getPortURI());
+            clockPort.unpublishPort();
+            clockPort.destroyPort();
+
+            // Attente éventuelle du démarrage de l'horloge
+            if (dhtClock.startTimeNotReached()) {
+                dhtClock.waitUntilStart();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+     // Démarrage du composant
+    @Override
+    public void start() throws ComponentStartException {
+        super.start();
+        try {
+            if (!this.dhtEndPointClient.clientSideInitialised()) {
+                this.dhtEndPointClient.initialiseClientSide(this);
+            }
+        } catch (Exception e) {
+            throw new ComponentStartException("Erreur lors de l'initialisation du client", e);
+        }
+    }
+
+    // Méthodes de base pour la gestion du DHT
+    public ContentDataI get(ContentKeyI key) throws Exception {
+        return this.dhtEndPointClient.getClientSideReference().get(key);
+    }
+
+    public ContentDataI put(ContentKeyI key, ContentDataI data) throws Exception {
+        return this.dhtEndPointClient.getClientSideReference().put(key, data);
+    }
+
+    public ContentDataI remove(ContentKeyI key) throws Exception {
+        return this.dhtEndPointClient.getClientSideReference().remove(key);
+    }
+
+    public <R extends Serializable, A extends Serializable> A mapReduce(
+            SelectorI selector, ProcessorI<R> processor,
+            ReductorI<A, R> reductor, CombinatorI<A> combinator, A identity) throws Exception {
+        return this.dhtEndPointClient.getClientSideReference().mapReduce(selector, processor, reductor, combinator, identity);
+    }
+
+    // Planification de la tâche
+    @Override
+    public void execute() throws Exception {
+        Instant startInstant = dhtClock.getStartInstant();
+        Instant executionInstant = startInstant.plusSeconds(TASK_EXECUTION_DELAY_SECONDS);
+        long delay = dhtClock.nanoDelayUntilInstant(executionInstant);
+
+        this.scheduleTask(new AbstractTask() {
+            @Override
+            public void run() {
+                executeClientTask();
+            }
         }, delay, TimeUnit.NANOSECONDS);
     }
 
+     // Tâche éxecutée
+    private void executeClientTask() {
+        try {
+            System.out.println("Client3 " + reflectionInboundPortURI);
+
+            final String attributeName = "NOM";
+            final String attributeAge = "AGE";
+
+            final ContentKey[] keys = {
+                new ContentKey(21), new ContentKey(22),
+                new ContentKey(250), new ContentKey(1234),
+                new ContentKey(1999)
+            };
+
+            final String[] names = { "P1", "P2", "P3", "P4", "P5" };
+            final int[] ages = { 56, 35, 2, 23, 13 };
+
+            for (int i = 0; i < keys.length; i++) {
+                Personne personne = new Personne(names[i], ages[i]);
+                ContentDataI previousData = put(keys[i], personne);
+
+                // Affichage et validation des données
+                System.out.println(get(keys[i]).getValue(attributeName));
+                System.out.println(get(keys[i]).getValue(attributeAge));
+
+                assert previousData == null : "Une donnée précédente existe déjà pour cette clé";
+                assert get(keys[i]).getValue(attributeName).equals(names[i]) : "Nom incorrect";
+                assert get(keys[i]).getValue(attributeAge).equals(ages[i]) : "Âge incorrect";
+            }
+
+            // Test MapReduce : double l'âge des personnes dont l'âge est pair et fait la somme, commence à MAP_REDUCE_INITIAL_VALUE
+            int result = mapReduce(
+                item -> ((int) item.getValue(attributeAge)) % 2 == 0,
+                item -> new Personne(
+                    (String) item.getValue(attributeName),
+                    (int) item.getValue(attributeAge) * 2
+                ),
+                (accumulator, value) -> accumulator + (int) value.getValue(attributeAge),
+                Integer::sum,
+                MAP_REDUCE_INITIAL_VALUE
+            );
+
+            System.out.println("MapReduce : " + result);
+            assert result == EXPECTED_MAP_REDUCE_RESULT : "Résultat MapReduce incorrect";
+
+            System.out.println("No problem");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Finalisation du composant
     @Override
     public synchronized void finalise() throws Exception {
-        this.logMessage("stopping client component.");
+        this.logMessage("Stopping client component.");
         this.printExecutionLogOnFile("client");
 
         this.dhtEndPointClient.cleanUpClientSide();
-
         super.finalise();
     }
-
 }

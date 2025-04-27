@@ -13,44 +13,51 @@ import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ProcessorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.ReductorI;
 import fr.sorbonne_u.cps.dht_mapreduce.interfaces.mapreduce.SelectorI;
 
-public class DHTInboundPort 
-extends AbstractInboundPort
-implements DHTServicesCI{
-	
-	public DHTInboundPort(String uri, ComponentI owner) throws Exception {
-	    super(uri, DHTServicesCI.class, owner);
 
-	    if (!(owner instanceof DHTServicesI)) {
-	        throw new Exception("Le composant " + owner.getClass().getName() +
-	                            " doit implémenter DHTServicesI.");
-	    }
-	}
+public class DHTInboundPort extends AbstractInboundPort implements DHTServicesCI {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	@Override
-	public ContentDataI get(ContentKeyI key) throws Exception {
-		return this.getOwner().handleRequest(
-				owner -> ((DHTServicesI)owner).get(key));
-	}
+    /**
+     * Constructeur avec vérification de type du propriétaire.
+     *
+     * @param uri URI du port
+     * @param owner composant propriétaire
+     * @throws Exception si le propriétaire n'implémente pas DHTServicesI
+     */
+    public DHTInboundPort(String uri, ComponentI owner) throws Exception {
+        super(uri, DHTServicesCI.class, owner);
 
-	@Override
-	public ContentDataI put(ContentKeyI key, ContentDataI value) throws Exception {
-		return this.getOwner().handleRequest(
-				owner -> ((DHTServicesI)owner).put(key, value));
-	}
+        if (!(owner instanceof DHTServicesI)) {
+            throw new Exception("The component " + owner.getClass().getName() +
+                    " must implement DHTServicesI.");
+        }
+    }
 
-	@Override
-	public ContentDataI remove(ContentKeyI key) throws Exception {
-		return this.getOwner().handleRequest(
-				owner -> ((DHTServicesI)owner).remove(key));
-	}
+    @Override
+    public ContentDataI get(ContentKeyI key) throws Exception {
+        return this.getOwner().handleRequest(
+                owner -> ((DHTServicesI) owner).get(key));
+    }
 
-	@Override
-	public <R extends Serializable, A extends Serializable> A mapReduce(SelectorI selector, ProcessorI<R> processor,
-			ReductorI<A, R> reductor, CombinatorI<A> combinator, A initialAcc) throws Exception {
-		return this.getOwner().handleRequest(
-				owner -> ((DHTServicesI)owner).mapReduce(selector, processor, reductor, combinator, initialAcc));
-	}
+    @Override
+    public ContentDataI put(ContentKeyI key, ContentDataI value) throws Exception {
+        return this.getOwner().handleRequest(
+                owner -> ((DHTServicesI) owner).put(key, value));
+    }
 
+    @Override
+    public ContentDataI remove(ContentKeyI key) throws Exception {
+        return this.getOwner().handleRequest(
+                owner -> ((DHTServicesI) owner).remove(key));
+    }
+
+    @Override
+    public <R extends Serializable, A extends Serializable> A mapReduce(
+            SelectorI selector, ProcessorI<R> processor,
+            ReductorI<A, R> reductor, CombinatorI<A> combinator,
+            A initialAcc) throws Exception {
+        return this.getOwner().handleRequest(
+                owner -> ((DHTServicesI) owner).mapReduce(selector, processor, reductor, combinator, initialAcc));
+    }
 }
