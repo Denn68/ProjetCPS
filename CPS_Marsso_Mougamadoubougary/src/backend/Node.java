@@ -485,7 +485,6 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI, ParallelMapRed
 
 			for (int i = debut; i < chords.size(); i++) {
 				next_endpoint = chords.get(i).first();
-				// Envoie la tâche au chord
 
 				this.mapReduceLock.writeLock().lock();
 				if (!next_endpoint.clientSideInitialised()) {
@@ -493,9 +492,7 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI, ParallelMapRed
 				}
 
 				next_endpoint.getMapReduceEndpoint().getClientSideReference().parallelMap(computationURI, selector,
-						processor,
-						// Réduit la profondeur max pour éviter les boucles infinies
-						new ParallelismPolicy(nbChords + increment));
+						processor,	new ParallelismPolicy(nbChords + increment));
 
 				increment++;
 				next_endpoint.cleanUpClientSide();
@@ -503,7 +500,6 @@ implements ContentAccessI, MapReduceI, MapReduceResultReceptionI, ParallelMapRed
 
 			}
 
-			// Calcul dans le noeud
 			this.hashMapLock.readLock().lock();
 			try {
 
